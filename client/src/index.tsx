@@ -1,15 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import { createStore } from 'redux'
+import { createStore, applyMiddleware } from 'redux'
+import thunk from 'redux-thunk'
 
 import './styles/index.scss';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import { rootReducer } from './store';
+import { rootReducer, loadTableOfContents } from './store';
 
-const store = createStore(rootReducer)
+const store = createStore(rootReducer, applyMiddleware(thunk))
 store.subscribe(() => console.log(store.getState()))
+store.dispatch(loadTableOfContents() as any)
 
 ReactDOM.render(
   <Provider store={store}><App /></Provider>,

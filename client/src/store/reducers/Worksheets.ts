@@ -1,25 +1,50 @@
+import produce from "immer"
 import { Action } from "redux"
 import { Worksheet } from '../types'
+
+import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadTOCAction, LOAD_TOC, LoadTOCACtionData, LoadWorksheetActionData } from '../actions'
 
 interface WorksheetsState {
   [key: string]: Worksheet
 }
 
-const initialWorksheetsState = {
-  "w049tu34589": {
-    uuid: "w049tu34589",
-    workbook: "1234-345345",
-    name: "First worksheet",
-    cells: ["45bn892vn90", "endnut56nnd56u"],
-  },
-  "76m9rj8678r": {
-    uuid: "76m9rj8678r",
-    workbook: "1234-345345",
-    name: "Second worksheet",
-    cells: ["r6rm68r76m8r76m8", "q34v4qb4q3456w467n"],
-  },
+function loadWorksheetReducer(draft: WorksheetsState, action: LoadWorksheetAction) {
+  switch (action.status) {
+    case AsyncStatus.Success:
+      // TODO normalize etc,
+      const data = action.data as LoadWorksheetActionData
+
+      draft[action.uuid] = {
+        ...data,
+        cells: data.cells.map(it => it.uuid)
+      }
+      break
+  }
 }
 
-export default function worksheetsReducer(state: WorksheetsState = initialWorksheetsState, action: Action) {
-  return state
+function loadTOCReducer(draft: WorksheetsState, action: LoadTOCAction) {
+  switch (action.status) {
+    case AsyncStatus.Success:
+      const data = action.data as LoadTOCACtionData
+      data.sheets.forEach(it => {
+        const { uuid, name, workbook } = it
+        draft[it.uuid] = {
+          uuid,
+          name,
+          workbook,
+          cells: []
+        }
+      })
+  }
+}
+
+export default function worksheetsReducer(state: WorksheetsState = {}, action: Action) {
+  return produce(state, draft => {
+    switch (action.type) {
+      case LOAD_WORKSHEET:
+        return loadWorksheetReducer(draft, action as LoadWorksheetAction)
+      case LOAD_TOC:
+        return loadTOCReducer(draft, action as LoadTOCAction)
+    }
+  })
 }

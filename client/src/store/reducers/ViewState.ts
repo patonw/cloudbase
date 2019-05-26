@@ -1,23 +1,61 @@
 import produce from "immer"
 import { UUID } from '../types'
+import { Action } from "redux"
 
-import {LoadWorksheetAction, LOAD_WORKSHEET} from '../actions'
+import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LOAD_TOC, LoadTOCAction, LoadTOCACtionData } from '../actions'
 
-interface ActiveState {
-  workbook: UUID,
-  worksheet: UUID | null,
+interface ViewState {
+  workbook?: UUID,
+  worksheet?: UUID,
+  loading: boolean,
 }
 
-const initialActiveState = {
-  workbook: "1234-345345",
-  worksheet: null,
+const initialViewState = {
+  loading: false,
 }
 
-export default function viewStateReducer(state: ActiveState = initialActiveState, action: LoadWorksheetAction) {
+function loadWorksheetReducer(draft: ViewState, action: LoadWorksheetAction) {
+  draft.worksheet = action.uuid
+  switch (action.status) {
+    case AsyncStatus.Pending:
+      draft.loading = true
+      break
+    case AsyncStatus.Failure:
+      draft.loading = false
+      break
+    case AsyncStatus.Cached:
+    case AsyncStatus.Success:
+      draft.loading = false
+      break
+  }
+}
+
+function loadTOCReducer(draft: ViewState, action: LoadTOCAction) {
+  switch (action.status) {
+    case AsyncStatus.Pending:
+      draft.loading = true
+      break
+    case AsyncStatus.Failure:
+      draft.loading = false
+      break
+    case AsyncStatus.Cached:
+    case AsyncStatus.Success:
+      const data = action.data as LoadTOCACtionData
+      const {uuid} = data.workbooks[0] // TODO null safety
+      draft.workbook = uuid
+
+      draft.loading = false
+      break
+  }
+}
+
+export default function viewStateReducer(state: ViewState = initialViewState, action: Action) {
   return produce(state, draft => {
     switch (action.type) {
       case LOAD_WORKSHEET:
-        draft.worksheet = action.uuid
+        return loadWorksheetReducer(draft, action as LoadWorksheetAction)
+      case LOAD_TOC:
+        return loadTOCReducer(draft, action as LoadTOCAction)
     }
   })
 }

@@ -11,6 +11,7 @@ export interface Worksheet {
   workbook: UUID,
   name: string,
   cells: UUID[],
+  modified?: number,
 }
 
 export interface Cell {
@@ -18,7 +19,7 @@ export interface Cell {
   worksheet: UUID,
   lang: string,
   script: string,
-  result: any
+  result?: any
 }
 
 export interface CodeCell extends Cell {

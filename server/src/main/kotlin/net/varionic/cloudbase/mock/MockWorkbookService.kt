@@ -11,6 +11,12 @@ val allWorkbooks = listOf(
                         CodeCell(nextUUID(), """listOf(1, 4, 9, 13)"""),
                         CodeCell(nextUUID(), """data class Foo(val x: Int, val y: Int)"""),
                         CodeCell(nextUUID(), """Foo(5,10)""")
+                )),
+
+                Worksheet(nextUUID(), "hello", listOf(
+                        CodeCell(nextUUID(), """listOf(5, 4, 9, 13)"""),
+                        CodeCell(nextUUID(), """data class World(val x: Int, val y: Int)"""),
+                        CodeCell(nextUUID(), """World(5,10)""")
                 ))
         ))
 )

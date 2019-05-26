@@ -9,7 +9,7 @@ import WorksheetView from './Worksheet'
 interface WorkbookProps {
   workbook: Workbook,
   sheets: Worksheet[],
-  worksheet: UUID | null,
+  worksheet?: UUID,
   loadWorksheet?: any,
   loading: boolean,
 }
@@ -47,7 +47,7 @@ class WorkbookView extends React.Component<WorkbookProps, any> {
 }
 
 function mapState(state: AppState, ownProps: any) {
-  const uuid = state.view.workbook
+  const uuid = ownProps.uuid
   const workbook = state.workbooks[uuid]
   const sheets = workbook.sheets.map((it) => state.worksheets[it])
   const loading = false

@@ -41,7 +41,7 @@ function mapState(state: AppState, ownProps: any) {
   const { name, workbook, cells } = worksheet
 
   const cellData = cells.map((it) => state.cells[it])
-  const loading = false
+  const loading = state.view.loading
 
   return {
     uuid,
