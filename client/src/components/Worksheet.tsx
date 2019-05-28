@@ -1,19 +1,16 @@
 import * as React from 'react'
 
 import { connect } from 'react-redux';
-import { UUID, AppState, Cell } from '../store'
+import { AppState, Worksheet } from '../store'
 
-import CodeCell from './CodeCell'
+import CellView from './CellView'
 
-interface WorksheetProps {
-  uuid: UUID,
-  workbook: UUID,
-  name: string,
-  cells: Cell[],
+interface WorksheetProps extends Worksheet {
   loading: boolean,
 }
 
 class WorksheetView extends React.Component<WorksheetProps, {}> {
+
   render() {
     const { workbook, cells, name, loading } = this.props
 
@@ -27,9 +24,7 @@ class WorksheetView extends React.Component<WorksheetProps, {}> {
     return (
       <div>
         Worksheet "{name}" from workbook {workbook}
-        {cells.map((it) =>
-          <CodeCell key={it.uuid} {...it}/>
-        )}
+        {cells.map((it) => <CellView key={it} uuid={it} />)}
       </div>
     )
   }
@@ -38,22 +33,20 @@ class WorksheetView extends React.Component<WorksheetProps, {}> {
 function mapState(state: AppState, ownProps: any) {
   const { uuid } = ownProps
   const worksheet = state.worksheets[uuid]
-  const { name, workbook, cells } = worksheet
-
-  const cellData = cells.map((it) => state.cells[it])
+  const { name, workbook, cells, process } = worksheet
   const loading = state.view.loading
 
   return {
     uuid,
     name,
     workbook,
-    cells: cellData,
+    cells,
+    process,
     loading,
   }
 }
 
-function mapDispatch(dispatch: any) {
-  return {}
+const mapDispatch = {
 }
 
 export default connect(mapState, mapDispatch)(WorksheetView)

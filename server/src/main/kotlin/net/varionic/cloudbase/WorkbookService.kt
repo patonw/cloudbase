@@ -22,11 +22,11 @@ val WorkbookGraphQLSchema = """
     type Query {
         worksheet(sheetId: ID!): Worksheet
         allWorkbooks: [Workbook!]!
-        allContexts: [SheetContext!]!
+        allProcesses: [Process!]!
     }
 
     type Mutation {
-        executeCell(contextId: ID!, cellId: ID!): CellResult
+        executeCell(processId: ID!, cellId: ID!): CellResult
         setCellScript(cellId: ID!, script: String!): Cell
         appendCell(sheetId: ID!, script: String): Cell
     }
@@ -64,7 +64,7 @@ val WorkbookGraphQLSchema = """
         data: String!
     }
 
-    type SheetContext {
+    type Process {
         uuid: ID!
         sheet: Worksheet!
         results: [CellResult!]!

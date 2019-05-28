@@ -12,9 +12,10 @@ export interface Worksheet {
   name: string,
   cells: UUID[],
   modified?: number,
+  process?: UUID,
 }
 
-export interface Cell {
+export interface CodeCell {
   uuid: UUID,
   worksheet: UUID,
   lang: string,
@@ -22,8 +23,12 @@ export interface Cell {
   result?: any
 }
 
-export interface CodeCell extends Cell {
+export interface GraphCell extends CodeCell {
+  spec: string
 }
 
-export interface GraphCell extends Cell {
+export type Cell = CodeCell | GraphCell
+
+export function isGraphCell(cell: Cell): cell is GraphCell {
+  return (cell as GraphCell).spec !== undefined
 }

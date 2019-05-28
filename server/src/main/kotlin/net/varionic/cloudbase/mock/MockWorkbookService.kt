@@ -21,9 +21,9 @@ val allWorkbooks = listOf(
         ))
 )
 
-val allContexts = listOf(
-        SheetContext(nextUUID(), allWorkbooks.first().sheets.first())
-)
+val allContexts = allWorkbooks.flatMap { it.sheets }.map {
+    SheetContext(nextUUID(), it)
+}
 
 class MockWorkbookSevice: WorkbookService {
     override val engine by lazy {
@@ -37,9 +37,10 @@ class MockWorkbookSevice: WorkbookService {
                     allWorkbooks
                 }
 
-                it.dataFetcher("allContexts") {
+                it.dataFetcher("allProcesses") {
                     allContexts
                 }
+
 
                 it.dataFetcher("worksheet") { env ->
                     val sheetId = env.getArgument<String>("sheetId")
@@ -53,7 +54,7 @@ class MockWorkbookSevice: WorkbookService {
                 // Adds a new server into the mock database
                 it.dataFetcher("executeCell") { env ->
                     val args = env.arguments
-                    val ctxId = args["contextId"] as String
+                    val ctxId = args["processId"] as String
                     val cellId = args["cellId"] as String
 
                     // TODO error handling

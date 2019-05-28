@@ -3,7 +3,7 @@ import { Action } from "redux"
 import { Worksheet } from '../types'
 
 import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadTOCAction, LOAD_TOC, LoadTOCACtionData, LoadWorksheetActionData } from '../actions'
-
+import fp from 'lodash/fp'
 interface WorksheetsState {
   [key: string]: Worksheet
 }
@@ -13,11 +13,12 @@ function loadWorksheetReducer(draft: WorksheetsState, action: LoadWorksheetActio
     case AsyncStatus.Success:
       // TODO normalize etc,
       const data = action.data as LoadWorksheetActionData
+      const {uuid} = action
 
-      draft[action.uuid] = {
+      draft[uuid] = fp.merge(draft[uuid] || {},{
         ...data,
         cells: data.cells.map(it => it.uuid)
-      }
+      })
       break
   }
 }
@@ -34,6 +35,10 @@ function loadTOCReducer(draft: WorksheetsState, action: LoadTOCAction) {
           workbook,
           cells: []
         }
+      })
+
+      fp.toPairs(data.processes).forEach(([pid,wsid]) => {
+        draft[wsid].process = pid
       })
   }
 }

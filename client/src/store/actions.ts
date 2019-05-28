@@ -1,5 +1,5 @@
 import { Action, Dispatch } from "redux"
-import { UUID } from './types'
+import { UUID, Cell } from './types'
 import axios from 'axios'
 import * as fp from 'lodash/fp'
 
@@ -12,6 +12,7 @@ export enum AsyncStatus {
 
 export const LOAD_TOC = 'LOAD_TOC'
 export const LOAD_WORKSHEET = 'LOAD_WORKSHEET'
+export const EXECUTE_CELL = 'EXECUTE_CELL'
 
 export interface LoadTOCACtionData {
   workbooks: {
@@ -24,6 +25,9 @@ export interface LoadTOCACtionData {
     name: string
     workbook: UUID
   }[]
+  processes: {
+    [key:string]: UUID
+  }
 }
 
 export interface LoadTOCAction extends Action {
@@ -32,6 +36,7 @@ export interface LoadTOCAction extends Action {
   data?: LoadTOCACtionData
   error?: any
 }
+
 export interface LoadWorksheetActionData {
   uuid: UUID
   name: string
@@ -42,6 +47,7 @@ export interface LoadWorksheetActionData {
     script: string
   }[]
 }
+
 export interface LoadWorksheetAction extends Action {
   type: typeof LOAD_WORKSHEET
   uuid: UUID
@@ -50,6 +56,21 @@ export interface LoadWorksheetAction extends Action {
   error?: any
 }
 
+export interface CreateCellAction extends Action {
+  type: typeof EXECUTE_CELL
+  status: AsyncStatus
+  worksheet: UUID
+  cells?: UUID[] // New cell ordering
+  data?: Cell
+}
+
+export interface ExecuteCellAction extends Action {
+  type: typeof EXECUTE_CELL
+  status: AsyncStatus
+  uuid: UUID
+  data?: any
+  error?: any
+}
 
 export function loadTableOfContents() {
   return async (dispatch: Dispatch) => {
@@ -67,6 +88,13 @@ export function loadTableOfContents() {
       }[]
     }[]
 
+    type ProcessResponse = {
+      uuid: UUID
+      sheet: {
+        uuid: UUID
+      }
+    }[]
+
     const resp = await axios.post('/graphql', {
       query: `
         query loadTOC {
@@ -78,32 +106,43 @@ export function loadTableOfContents() {
               name
             }
           }
+
+          allProcesses {
+            uuid
+            sheet {
+              uuid
+            }
+          }
         }
         `
     })
 
     // TODO use normalizr
     const data = fp.getOr([], 'data.allWorkbooks')(resp.data) as ResponseType
+    const procs = fp.getOr([], 'data.allProcesses')(resp.data) as ProcessResponse
     const workbooks = data.map(wb => ({
       uuid: wb.uuid,
       name: wb.name,
       sheets: wb.sheets.map(it => it.uuid)
     }))
 
-    const sheets = data.map( wb =>
-      wb.sheets.map( it => ({
+    const sheets = data.map(wb =>
+      wb.sheets.map(it => ({
         uuid: it.uuid,
         name: it.name,
         workbook: wb.uuid,
       }))
-      ).flat()
+    ).flat()
+
+    const processes = fp.fromPairs(procs.map(it => [it.uuid, it.sheet.uuid]))
 
     dispatch({
       type: LOAD_TOC,
       status: AsyncStatus.Success,
       data: {
         workbooks,
-        sheets
+        sheets,
+        processes
       }
     })
   }
@@ -124,7 +163,8 @@ export function loadWorksheet(uuid: UUID) {
     }
 
     // TODO from graphql instead
-    const {workbook} = worksheets[uuid]
+    const worksheet = worksheets[uuid] || {}
+    const { workbook } = worksheet
 
     // TODO if all cells loaded already then dispatch Cached
     // Otherwise construct graphql query and await answer
@@ -164,6 +204,63 @@ export function loadWorksheet(uuid: UUID) {
         ...data,
         workbook
       }
+    })
+
+    // TODO getOrCreateProcess
+  }
+}
+
+// TODO getOrCreateProcess
+// TODO restartProcess
+// TODO createCodeCell
+// TODO createGraphCell
+
+
+export function executeCell(processId: UUID, cellId: UUID) {
+  return async (dispatch: Dispatch, getState: any) => {
+    console.log(`Executing cell ${cellId} with process ${processId}`)
+    // TODO First check if dirty
+    // Construct mutation request with updateScript and executeCell clauses
+    // Wait for response and unpack
+    // Unmark cell as dirty
+    // Update results
+
+    type ResponseType = {
+      executeCell: {
+        cell: {
+          uuid: UUID
+        }
+        data: string
+      }
+    }
+
+    const query = `
+      mutation justExecute($processId:ID!, $cellId:ID!) {
+        executeCell(processId: $processId, cellId: $cellId) {
+          cell {
+            uuid
+          }
+          data
+        }
+      }`
+
+    const variables = {
+      processId,
+      cellId,
+    }
+
+    const resp = await axios.post('/graphql', {
+      query,
+      variables,
+    })
+
+    const data = resp.data.data as ResponseType
+
+    dispatch({
+      type: EXECUTE_CELL,
+      status: AsyncStatus.Success,
+      uuid: cellId,
+      data: data.executeCell.data,
     })
   }
 }

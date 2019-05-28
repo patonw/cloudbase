@@ -1,5 +1,10 @@
+tasks.register<Exec>("yarnInstall") {
+    workingDir = projectDir.resolve("client")
+    commandLine = listOf("yarn", "install")
+}
+
 tasks.register<Exec>("webpack") {
-    // TODO define inputs/outputs
+    dependsOn("yarnInstall")
     workingDir = projectDir.resolve("client")
     commandLine = listOf("yarn", "build")
 }
