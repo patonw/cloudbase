@@ -24,22 +24,24 @@ class WorkbookView extends React.Component<WorkbookProps, any> {
 
     const { worksheet, loadWorksheet, sheets } = this.props
     return (
-      <div className="columns">
-        <aside className="panel column is-2">
-          <p className="panel-heading">
-            Worksheets
-          </p>
-          <ul>
-            {sheets.map((it) =>
-              // eslint-disable-next-line
-              <a key={it.uuid} onClick={() => loadWorksheet(it.uuid)}>
-                <li className="panel-block">{it.name}</li>
-              </a>
-            )}
-          </ul>
-        </aside>
-        <div className="container column">
-          {worksheet && <WorksheetView uuid={worksheet}/> }
+      <div className="container">
+        <div className="columns">
+          <aside className="menu column is-narrow sidebar box">
+            <p className="menu-label">
+              Worksheets
+            </p>
+            <ul className="menu-list">
+              {sheets.map((it) =>
+                // eslint-disable-next-line
+                <a key={it.uuid} className={it.uuid === worksheet? "is-active" : ""} onClick={() => loadWorksheet(it.uuid)}>
+                  <li>{it.name}</li>
+                </a>
+              )}
+            </ul>
+          </aside>
+          <div className="column">
+            {worksheet && <WorksheetView uuid={worksheet}/> }
+          </div>
         </div>
       </div>
     )

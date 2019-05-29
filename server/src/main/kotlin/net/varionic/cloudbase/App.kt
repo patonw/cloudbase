@@ -32,6 +32,7 @@ fun Application.main() {
             serializeNulls()
         }
     }
+
     routing {
         static("/") {
             resources("/")
@@ -42,7 +43,10 @@ fun Application.main() {
     }
 }
 
-fun main(args: Array<String>) {
-    embeddedServer(Netty, port = 8080, module = Application::main)
+fun main() {
+    embeddedServer(Netty,
+            port = 8080,
+            module = Application::main,
+            watchPaths = listOf("server"))
             .start(true)
 }

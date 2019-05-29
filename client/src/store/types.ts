@@ -15,12 +15,18 @@ export interface Worksheet {
   process?: UUID,
 }
 
+export interface CellResult {
+  progress?: number
+  data?: string
+  json?: () => any
+  error?: string
+}
+
 export interface CodeCell {
   uuid: UUID,
   worksheet: UUID,
   lang: string,
   script: string,
-  result?: any
 }
 
 export interface GraphCell extends CodeCell {

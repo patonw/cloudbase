@@ -26,7 +26,7 @@ export interface LoadTOCACtionData {
     workbook: UUID
   }[]
   processes: {
-    [key:string]: UUID
+    [key: string]: UUID
   }
 }
 
@@ -68,8 +68,13 @@ export interface ExecuteCellAction extends Action {
   type: typeof EXECUTE_CELL
   status: AsyncStatus
   uuid: UUID
-  data?: any
+  data?: string
+  json?: () => any
   error?: any
+}
+
+export function later(delay: number, value: any = null) {
+  return new Promise(resolve => setTimeout(resolve, delay, value));
 }
 
 export function loadTableOfContents() {
@@ -225,12 +230,21 @@ export function executeCell(processId: UUID, cellId: UUID) {
     // Unmark cell as dirty
     // Update results
 
+    dispatch({
+      type: EXECUTE_CELL,
+      status: AsyncStatus.Pending,
+      uuid: cellId,
+    })
+
+    await later(2000)
+
     type ResponseType = {
       executeCell: {
         cell: {
           uuid: UUID
         }
         data: string
+        json: string
       }
     }
 
@@ -241,6 +255,7 @@ export function executeCell(processId: UUID, cellId: UUID) {
             uuid
           }
           data
+          json
         }
       }`
 
@@ -254,13 +269,33 @@ export function executeCell(processId: UUID, cellId: UUID) {
       variables,
     })
 
-    const data = resp.data.data as ResponseType
+    console.log("Execute cell", resp)
 
-    dispatch({
-      type: EXECUTE_CELL,
-      status: AsyncStatus.Success,
-      uuid: cellId,
-      data: data.executeCell.data,
-    })
+    const errors = fp.getOr([], "errors")(resp.data) as any[]
+    const error = errors.map((it) => it.message).join()
+
+    if (error) {
+      dispatch({
+        type: EXECUTE_CELL,
+        status: AsyncStatus.Failure,
+        uuid: cellId,
+        error
+      })
+    }
+    else {
+      const data = resp.data.data as ResponseType
+
+      // Memoized parsing
+      const json = data.executeCell.json &&
+        fp.memoize(() => JSON.parse(data.executeCell.json))
+
+      dispatch({
+        type: EXECUTE_CELL,
+        status: AsyncStatus.Success,
+        uuid: cellId,
+        data: data.executeCell.data,
+        json,
+      })
+    }
   }
 }

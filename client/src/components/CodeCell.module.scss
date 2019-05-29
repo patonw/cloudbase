@@ -1,0 +1,26 @@
+.cellContainer {
+  display: block;
+  padding: 1em;
+  margin-bottom: 1em;
+  border: 1px solid #CCCCCC;
+  border-radius: 8px;
+}
+
+.codeblock {
+  display: block;
+  height: 100px;
+  width: 95%;
+}
+
+.resultBlock {
+  display: block;
+  padding: 0.5em;
+  margin-top: 1em;
+  //border-style: solid;
+  //border-width: 1px;
+  background-color: #eff0f1;
+}
+
+.progressbar {
+  margin-top: 1em;
+}

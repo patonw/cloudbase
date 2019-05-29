@@ -12,7 +12,7 @@ interface WorksheetProps extends Worksheet {
 class WorksheetView extends React.Component<WorksheetProps, {}> {
 
   render() {
-    const { workbook, cells, name, loading } = this.props
+    const { cells, loading } = this.props
 
     // TODO if worksheet is selected but still waiting on fetch, show spinner
     if (loading) {
@@ -23,7 +23,6 @@ class WorksheetView extends React.Component<WorksheetProps, {}> {
 
     return (
       <div>
-        Worksheet "{name}" from workbook {workbook}
         {cells.map((it) => <CellView key={it} uuid={it} />)}
       </div>
     )

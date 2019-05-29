@@ -2,7 +2,7 @@ import { Action } from "redux"
 import produce from "immer"
 import fp from 'lodash/fp'
 
-import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadWorksheetActionData, EXECUTE_CELL, ExecuteCellAction } from '../actions'
+import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadWorksheetActionData } from '../actions'
 
 import { Cell } from '../types'
 
@@ -28,21 +28,11 @@ function loadWorksheetReducer(draft: CellsState, action: LoadWorksheetAction) {
   }
 }
 
-function executeCellReducer(draft: CellsState, action: ExecuteCellAction) {
-  switch (action.status) {
-    case AsyncStatus.Success:
-      const { uuid, data } = action
-      draft[uuid].result = data
-  }
-}
-
 export default function cellsReducer(state: CellsState = {}, action: Action) {
   return produce(state, draft => {
     switch (action.type) {
       case LOAD_WORKSHEET:
         return loadWorksheetReducer(draft, action as LoadWorksheetAction)
-      case EXECUTE_CELL:
-        return executeCellReducer(draft, action as ExecuteCellAction)
     }
   })
 }

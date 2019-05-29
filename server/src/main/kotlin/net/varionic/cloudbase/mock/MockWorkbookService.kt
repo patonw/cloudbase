@@ -1,5 +1,6 @@
 package net.varionic.cloudbase.mock
 
+import com.google.gson.Gson
 import graphql.GraphQL
 import graphql.schema.idl.SchemaParser
 import net.varionic.cloudbase.*
@@ -29,6 +30,7 @@ class MockWorkbookSevice: WorkbookService {
     override val engine by lazy {
 
         val registry = SchemaParser().parse(WorkbookGraphQLSchema)
+        val gson = Gson()
 
         // Bind lambdas to schema operations
         val wiredSchema = registry.wiring {
@@ -78,6 +80,17 @@ class MockWorkbookSevice: WorkbookService {
             type("Cell") {
                 it.typeResolver { env ->
                     env.schema.getObjectType("CodeCell")
+                }
+            }
+
+            type("CellResult") {
+                it.dataFetcher("data") { env ->
+                    val that = env.getSource() as CellResult
+                    that.data.toString()
+                }
+                it.dataFetcher("json") { env ->
+                    val that = env.getSource() as CellResult
+                    gson.toJson(that.data)
                 }
             }
         }

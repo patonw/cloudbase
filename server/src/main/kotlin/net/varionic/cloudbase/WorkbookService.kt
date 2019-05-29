@@ -16,7 +16,7 @@ sealed class Cell(val uuid: String, var script: String)
 class CodeCell(uuid: String, script: String): Cell(uuid, script)
 class GraphCell(uuid: String, script: String, val spec: String) : Cell(uuid, script)
 
-data class CellResult(val uuid: String, val cell: Cell, val data: String, val error: String? = null)
+data class CellResult(val uuid: String, val cell: Cell, val data: Any, val error: Throwable? = null)
 
 val WorkbookGraphQLSchema = """
     type Query {
@@ -62,6 +62,7 @@ val WorkbookGraphQLSchema = """
     type CellResult {
         cell: Cell!
         data: String!
+        json: String!
     }
 
     type Process {

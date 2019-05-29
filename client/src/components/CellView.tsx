@@ -30,5 +30,4 @@ function mapState(state: AppState, ownProps: any): CellViewProps {
   }
 }
 
-
 export default connect(mapState, {})(CellView)
