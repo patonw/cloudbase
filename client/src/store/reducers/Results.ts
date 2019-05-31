@@ -27,8 +27,6 @@ function executeCellReducer(draft: ResultsState, action: ExecuteCellAction) {
   const { uuid, status, data, json, error } = action
   const cell = draft[uuid] = draft[uuid] || {}
 
-  console.log("reducing")
-
   switch (status) {
     case AsyncStatus.Pending:
       cell.progress = 1
@@ -47,8 +45,6 @@ function executeCellReducer(draft: ResultsState, action: ExecuteCellAction) {
       cell.error = error
       break
   }
-
-  console.log("reduced")
 }
 
 export default function resultsReducer(state: ResultsState = {}, action: Action) {

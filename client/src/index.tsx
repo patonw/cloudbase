@@ -2,16 +2,27 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 import { createStore, applyMiddleware } from 'redux'
-import thunk from 'redux-thunk'
+import { createEpicMiddleware } from 'redux-observable';
+import { ajax } from 'rxjs/ajax'
 
 import './styles/index.scss';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import { rootReducer, loadTableOfContents } from './store';
+import { rootReducer, rootEpic, startApp } from './store';
 
-const store = createStore(rootReducer, applyMiddleware(thunk))
+import { makeAjaxClient } from './store/graphql'
+
+const epicWare = createEpicMiddleware({
+  dependencies: {
+    graphql: makeAjaxClient(ajax),
+  }
+})
+
+const store = createStore(rootReducer, applyMiddleware(epicWare))
+epicWare.run(rootEpic)
 store.subscribe(() => console.log(store.getState()))
-store.dispatch(loadTableOfContents() as any)
+store.dispatch(startApp())
+//store.dispatch(loadTableOfContents() as any)
 
 ReactDOM.render(
   <Provider store={store}><App /></Provider>,

@@ -2,7 +2,7 @@ import * as React from 'react'
 import fp from 'lodash/fp'
 import { connect } from 'react-redux';
 import { UnControlled as CodeMirror } from 'react-codemirror2';
-import { AppState, CodeCell, executeCell, UUID, CellResult } from '../store'
+import { AppState, CodeCell, executeCell, UUID, CellResult, dirtyCell } from '../store'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay } from '@fortawesome/free-solid-svg-icons'
@@ -16,15 +16,17 @@ import 'codemirror/mode/clike/clike';
 import styles from './CodeCell.module.scss'
 
 interface CodeCellViewProps extends CodeCell {
-  executeCell: typeof executeCell
+  executeCell: typeof executeCell,
+  dirtyCell: typeof dirtyCell,
   process: UUID,
   result: CellResult,
 }
 
 class CodeCellView extends React.Component<CodeCellViewProps, {}> {
   render() {
-    const { uuid, script, result, process, executeCell } = this.props
+    const { uuid, script, result, process, executeCell, dirtyCell } = this.props
     const scriptHandler = () => executeCell(process, uuid)
+    const changeHandler = (cm: any, data: any, value: any) => dirtyCell(uuid, value)
 
     return (
       <div className={styles.cellContainer}>
@@ -46,6 +48,7 @@ class CodeCellView extends React.Component<CodeCellViewProps, {}> {
                   "Ctrl-Enter": scriptHandler
                 }
               }}
+              onChange={changeHandler}
             />
 
             {result.progress &&
@@ -92,7 +95,8 @@ function mapState(state: AppState, ownProps: any): CodeCellViewProps {
 }
 
 const mapDispatch = {
-  executeCell
+  executeCell,
+  dirtyCell,
 }
 
 export default connect(mapState, mapDispatch)(CodeCellView)

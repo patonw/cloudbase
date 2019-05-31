@@ -38,3 +38,4 @@ export type Cell = CodeCell | GraphCell
 export function isGraphCell(cell: Cell): cell is GraphCell {
   return (cell as GraphCell).spec !== undefined
 }
+
