@@ -2,11 +2,11 @@ import * as fp from 'lodash/fp'
 
 import { Action } from 'redux'
 import { combineEpics as combineObservers, ofType, StateObservable } from "redux-observable";
-import { catchError, map, mergeMap, pluck, filter, switchMap, delay, flatMap } from 'rxjs/operators'
+import { catchError, map, pluck, filter, switchMap, delay, flatMap } from 'rxjs/operators'
 
 import { AppState } from './reducers'
 import { Observable, of } from 'rxjs';
-import { START_APP, AsyncStatus, LOAD_TOC, AsyncAction, LOAD_WORKSHEET, LoadWorksheetAction, EXECUTE_CELL, ExecuteCellAction } from './actions';
+import { START_APP, AsyncStatus, LOAD_TOC, AsyncAction, EXECUTE_CELL, ExecuteCellAction } from './actions';
 
 import * as gql from './graphql'
 import { UUID } from './types';
@@ -71,44 +71,6 @@ class LoadTOC {
   )
 }
 
-class LoadWorksheet {
-  // TODO handle graphql errors
-  static success(resp: gql.LoadWorksheetResponse) {
-    if (resp.errors) {
-      throw resp.errors
-    }
-
-    const sheet = resp.data.worksheet
-
-    return {
-      type: LOAD_WORKSHEET,
-      status: AsyncStatus.Success,
-      uuid: sheet.uuid,
-      data: sheet,
-    }
-  }
-
-  static failure = (uuid: UUID) => (error: any) => of({
-    type: LOAD_WORKSHEET,
-    status: AsyncStatus.Failure,
-    uuid,
-    error,
-  })
-
-  static observer = (action$: Observable<Action>, state$: Observable<AppState>, { graphql }: ObserverDeps) => action$.pipe(
-    ofType(LOAD_WORKSHEET),
-    ofStatus(AsyncStatus.Pending),
-    map(req => req as LoadWorksheetAction),
-    mergeMap(({ uuid }) =>
-      graphql(gql.loadWorksheet(uuid)).pipe(
-        pluck('response'),
-        map(LoadWorksheet.success),
-        catchError(LoadWorksheet.failure(uuid))
-      )
-    ),
-  )
-}
-
 class ExecuteCell {
   static success = (pid: UUID, uuid: UUID) => (resp: gql.ExecuteCellResponse) => {
     if (resp.errors) {
@@ -166,6 +128,6 @@ class ExecuteCell {
 
 export const rootObserver = combineObservers(
   LoadTOC.observer as any,
-  LoadWorksheet.observer,
+  //LoadWorksheet.observer,
   ExecuteCell.observer,
 )

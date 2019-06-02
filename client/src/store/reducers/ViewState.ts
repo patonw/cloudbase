@@ -2,7 +2,7 @@ import produce from "immer"
 import { UUID } from '../types'
 import { Action } from "redux"
 
-import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LOAD_TOC, LoadTOCAction, LoadTOCACtionData } from '../actions'
+import { isAsyncAction, LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LOAD_TOC, LoadTOCAction, LoadTOCACtionData } from '../actions'
 
 interface ViewState {
   workbook?: UUID,
@@ -51,6 +51,12 @@ function loadTOCReducer(draft: ViewState, action: LoadTOCAction) {
 
 export default function viewStateReducer(state: ViewState = initialViewState, action: Action) {
   return produce(state, draft => {
+    if (isAsyncAction(action)) {
+      if (action.status === AsyncStatus.Failure) {
+        // TODO show an error
+        console.log("Some kind of error", action.error)
+      }
+    }
     switch (action.type) {
       case LOAD_WORKSHEET:
         return loadWorksheetReducer(draft, action as LoadWorksheetAction)

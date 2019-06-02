@@ -32,7 +32,15 @@ export interface LoadTOCACtionData {
   }
 }
 
-export interface LoadTOCAction extends Action {
+export interface AsyncAction extends Action {
+  type: string
+  status: AsyncStatus
+  error?: any
+}
+
+export const isAsyncAction = (action: Action): action is AsyncAction => (action as AsyncAction).status !== undefined
+
+export interface LoadTOCAction extends AsyncAction {
   type: typeof LOAD_TOC
   status: AsyncStatus
   data?: LoadTOCACtionData
@@ -50,24 +58,24 @@ export interface LoadWorksheetActionData {
   }[]
 }
 
-export interface LoadWorksheetAction extends Action {
-  type: typeof LOAD_WORKSHEET
+export interface LoadWorksheetAction extends AsyncAction {
+  type: string
   uuid: UUID
   status: AsyncStatus
   data?: LoadWorksheetActionData
   error?: any
 }
 
-export interface CreateCellAction extends Action {
-  type: typeof EXECUTE_CELL
+export interface CreateCellAction extends AsyncAction {
+  type: string
   status: AsyncStatus
   worksheet: UUID
   cells?: UUID[] // New cell ordering
   data?: Cell
 }
 
-export interface ExecuteCellAction extends Action {
-  type: typeof EXECUTE_CELL
+export interface ExecuteCellAction extends AsyncAction {
+  type: string
   status: AsyncStatus
   uuid: UUID
   pid: UUID
@@ -77,18 +85,16 @@ export interface ExecuteCellAction extends Action {
 }
 
 export interface DirtyCellAction extends Action {
-  type: typeof DIRTY_CELL,
-  uuid: UUID,
-  script: string,
+  type: string
+  uuid: UUID
+  script: string
 }
 
 export interface CommitCellAction extends Action {
-  type: typeof COMMIT_CELL,
+  type: string
   status: AsyncStatus
-  uuid: UUID,
+  uuid: UUID
 }
-
-export type AsyncAction = LoadTOCAction | LoadWorksheetAction | CreateCellAction | ExecuteCellAction | CommitCellAction
 
 export function later(delay: number, value: any = null) {
   return new Promise(resolve => setTimeout(resolve, delay, value));

@@ -12,17 +12,33 @@ import { rootReducer, rootEpic, startApp } from './store';
 
 import { makeAjaxClient } from './store/graphql'
 
+import { run } from '@cycle/most-run'
+import { createCycleMiddleware } from 'redux-cycles'
+import {makeHTTPDriver} from '@cycle/http';
+
+import main from './store/cycles'
+
+const cycleMiddleware = createCycleMiddleware();
+const { makeActionDriver, makeStateDriver } = cycleMiddleware;
+const drivers = {
+  ACTION: makeActionDriver(),
+  STATE: makeStateDriver(),
+  HTTP: makeHTTPDriver(),
+}
+
+
 const epicWare = createEpicMiddleware({
   dependencies: {
     graphql: makeAjaxClient(ajax),
   }
 })
 
-const store = createStore(rootReducer, applyMiddleware(epicWare))
+const store = createStore(rootReducer, applyMiddleware(epicWare, cycleMiddleware))
 epicWare.run(rootEpic)
 store.subscribe(() => console.log(store.getState()))
 store.dispatch(startApp())
-//store.dispatch(loadTableOfContents() as any)
+
+run(main, drivers)
 
 ReactDOM.render(
   <Provider store={store}><App /></Provider>,

@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@cycle/http": "^15.1.0",
+    "@cycle/most-run": "^8.2.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.18",
     "@fortawesome/free-solid-svg-icons": "^5.8.2",
     "@fortawesome/react-fontawesome": "^0.1.4",
@@ -11,6 +13,7 @@
     "codemirror": "^5.47.0",
     "immer": "^3.1.2",
     "lodash": "^4.17.11",
+    "most": "^1.7.3",
     "node-sass": "^4.12.0",
     "normalizr": "^3.3.0",
     "react": "^16.8.6",
@@ -19,6 +22,7 @@
     "react-redux": "^7.0.3",
     "react-scripts": "3.0.1",
     "redux": "^4.0.1",
+    "redux-cycles": "^0.4.1",
     "redux-observable": "^1.1.0",
     "rxjs": "^6.5.2",
     "typescript": "^3.4.5"
@@ -48,7 +52,8 @@
     "@types/lodash": "^4.14.132",
     "@types/react": "^16.8.18",
     "@types/react-dom": "^16.8.4",
-    "@types/react-redux": "^7.0.9"
+    "@types/react-redux": "^7.0.9",
+    "@types/superagent": "^4.1.1"
   },
   "proxy": "http://localhost:8080/"
 }
