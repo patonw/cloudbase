@@ -1,6 +1,6 @@
 import { ajax, AjaxResponse } from 'rxjs/ajax';
 import { Observable } from 'rxjs';
-import { UUID } from './types'
+import { UUID, Cell, isGraphCell } from './types'
 import { LoadWorksheetActionData } from './actions';
 
 type Ajax = typeof ajax
@@ -88,6 +88,9 @@ export const loadWorksheet = (uuid: UUID) => ({
         __typename
         uuid
         script
+        ... on GraphCell {
+          spec
+        }
       }
     }
   }`,
@@ -110,28 +113,50 @@ export interface ExecuteCellResponse extends GraphQLResponse {
     }
   }
 }
-export const updateAndExecute = (processId: UUID, cellId: UUID, script: string) => ({
-  query: `
-  mutation updateAndExecute($processId:ID!, $cellId:ID!, $script: String!) {
-    setCellScript(cellId: $cellId, script: $script) {
-      uuid
-    }
-    executeCell(processId: $processId, cellId: $cellId) {
-      cell {
-        uuid
-      }
-      data
-      json
-    }
-  }`,
-  variables: {
+export const updateAndExecute = (processId: UUID, cellId: UUID, dirty: Cell) => {
+  let updates = ""
+  let args = ""
+  let variables: any = {
     processId,
     cellId,
-    script,
   }
-})
 
-export const executeCell = (processId: UUID, cellId: UUID, script?: string) => (script? updateAndExecute(processId, cellId, script) : {
+  if (dirty.script) {
+    updates += `
+      setCellScript(cellId: $cellId, script: $script) {
+        uuid
+      }`
+    args += ', $script: String!'
+    variables.script = dirty.script
+  }
+
+  if (isGraphCell(dirty)) {
+    updates += `
+      setGraphSpec(cellId: $cellId, spec: $spec) {
+        uuid
+      }
+    `
+    args += ', $spec: String!'
+    variables.spec = dirty.spec
+  }
+
+  return ({
+    query: `
+    mutation updateAndExecute($processId:ID!, $cellId:ID! ${args}) {
+      ${updates}
+      executeCell(processId: $processId, cellId: $cellId) {
+        cell {
+          uuid
+        }
+        data
+        json
+      }
+    }`,
+    variables,
+  })
+}
+
+export const executeCell = (processId: UUID, cellId: UUID, dirty?: Cell) => (dirty? updateAndExecute(processId, cellId, dirty) : {
   query: `
   mutation justExecute($processId:ID!, $cellId:ID!) {
     executeCell(processId: $processId, cellId: $cellId) {

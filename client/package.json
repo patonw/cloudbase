@@ -19,13 +19,18 @@
     "react": "^16.8.6",
     "react-codemirror2": "^6.0.0",
     "react-dom": "^16.8.6",
+    "react-error-boundary": "^1.2.5",
     "react-redux": "^7.0.3",
     "react-scripts": "3.0.1",
+    "react-vega": "^6.0.1",
+    "react-vega-lite": "^6.0.1",
     "redux": "^4.0.1",
     "redux-cycles": "^0.4.1",
     "redux-observable": "^1.1.0",
     "rxjs": "^6.5.2",
-    "typescript": "^3.4.5"
+    "typescript": "^3.4.5",
+    "vega": "^5.4.0",
+    "vega-lite": "^3.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -34,7 +39,20 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "rules": {
+      "jsx-a11y/anchor-is-valid": [
+        "off",
+        {
+          "components": [
+            "Link"
+          ],
+          "specialLink": [
+            "to"
+          ]
+        }
+      ]
+    }
   },
   "browserslist": {
     "production": [

@@ -8,15 +8,28 @@ export enum AsyncStatus {
   Failure,
 }
 
+export const CLEAR_ERROR = Symbol('CLEAR_ERROR')
 export const START_APP = 'START_APP'
 export const LOAD_TOC = 'LOAD_TOC'
 export const LOAD_WORKSHEET = 'LOAD_WORKSHEET'
 export const EXECUTE_CELL = 'EXECUTE_CELL'
 export const CREATE_CELL = 'CREATE_CELL'
 export const DIRTY_CELL = 'DIRTY_CELL'
+export const DIRTY_GRAPH = 'DIRTY_GRAPH'
 export const COMMIT_CELL = 'COMMIT_CELL'
+export const AFTER_COMMIT = Symbol('AFTER_COMMIT')
 
-export interface LoadTOCACtionData {
+// TODO Use generics for concrete actions
+export interface ActionOf<T> extends Action {
+  data: T
+}
+
+export interface AsyncActionOf<T> extends ActionOf<T> {
+  status: AsyncStatus
+  error?: any
+}
+
+export interface LoadTOCActionData {
   workbooks: {
     uuid: UUID
     name: string
@@ -43,7 +56,7 @@ export const isAsyncAction = (action: Action): action is AsyncAction => (action 
 export interface LoadTOCAction extends AsyncAction {
   type: typeof LOAD_TOC
   status: AsyncStatus
-  data?: LoadTOCACtionData
+  data?: LoadTOCActionData
   error?: any
 }
 
@@ -55,6 +68,7 @@ export interface LoadWorksheetActionData {
     __typename: string
     uuid: UUID
     script: string
+    spec?: string
   }[]
 }
 
@@ -90,14 +104,28 @@ export interface DirtyCellAction extends Action {
   script: string
 }
 
+export interface DirtyGraphAction extends Action {
+  type: string
+  uuid: UUID
+  spec: string
+}
+
 export interface CommitCellAction extends Action {
   type: string
   status: AsyncStatus
   uuid: UUID
 }
 
+export type AfterCommitAction = ActionOf<Cell>
+
 export function later(delay: number, value: any = null) {
   return new Promise(resolve => setTimeout(resolve, delay, value));
+}
+
+export function clearError(): Action {
+  return {
+    type: CLEAR_ERROR,
+  }
 }
 
 export const startApp = () => ({ type: START_APP })
@@ -123,11 +151,22 @@ export const executeCell = (processId: UUID, cellId: UUID, status = AsyncStatus.
 export const dirtyCell = (uuid: UUID, script: string) => ({
   type: DIRTY_CELL,
   uuid,
-  script,
+  script
+})
+
+export const dirtyGraph = (uuid: UUID, spec: string) => ({
+  type: DIRTY_GRAPH,
+  uuid,
+  spec,
 })
 
 export const commitCell = (uuid: UUID, status = AsyncStatus.Pending) => ({
   type: COMMIT_CELL,
   uuid,
   status
+})
+
+export const afterCommit = (data: Cell) => ({
+  type: AFTER_COMMIT,
+  data,
 })

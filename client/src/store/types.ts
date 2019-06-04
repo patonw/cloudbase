@@ -19,7 +19,7 @@ export interface CellResult {
   progress?: number
   data?: string
   json?: () => any
-  error?: string
+  error?: any
 }
 
 export interface CodeCell {

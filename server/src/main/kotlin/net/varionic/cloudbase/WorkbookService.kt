@@ -10,11 +10,11 @@ interface WorkbookService: GraphQLService
 fun nextUUID() = UUID.randomUUID().toString()
 
 data class Workbook(val uuid: String, val name: String, val sheets: List<Worksheet>)
-data class Worksheet(val uuid: String, val name: String, val cells: List<CodeCell>)
+data class Worksheet(val uuid: String, val name: String, val cells: List<Cell>)
 
 sealed class Cell(val uuid: String, var script: String)
 class CodeCell(uuid: String, script: String): Cell(uuid, script)
-class GraphCell(uuid: String, script: String, val spec: String) : Cell(uuid, script)
+class GraphCell(uuid: String, script: String, var spec: String) : Cell(uuid, script)
 
 data class CellResult(val uuid: String, val cell: Cell, val data: Any, val error: Throwable? = null)
 
@@ -28,6 +28,7 @@ val WorkbookGraphQLSchema = """
     type Mutation {
         executeCell(processId: ID!, cellId: ID!): CellResult
         setCellScript(cellId: ID!, script: String!): Cell
+        setGraphSpec(cellId: ID!, spec: String!): GraphCell
         appendCell(sheetId: ID!, script: String): Cell
     }
 

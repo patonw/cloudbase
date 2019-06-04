@@ -26,7 +26,6 @@ const drivers = {
   HTTP: makeHTTPDriver(),
 }
 
-
 const epicWare = createEpicMiddleware({
   dependencies: {
     graphql: makeAjaxClient(ajax),
@@ -35,8 +34,8 @@ const epicWare = createEpicMiddleware({
 
 const store = createStore(rootReducer, applyMiddleware(epicWare, cycleMiddleware))
 epicWare.run(rootEpic)
-store.subscribe(() => console.log(store.getState()))
 store.dispatch(startApp())
+//store.subscribe(() => console.log(store.getState()))
 
 run(main, drivers)
 

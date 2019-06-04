@@ -2,7 +2,7 @@ import produce from "immer"
 import { Action } from "redux"
 import { Worksheet } from '../types'
 
-import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadTOCAction, LOAD_TOC, LoadTOCACtionData, LoadWorksheetActionData } from '../actions'
+import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadTOCAction, LOAD_TOC, LoadTOCActionData, LoadWorksheetActionData } from '../actions'
 import fp from 'lodash/fp'
 interface WorksheetsState {
   [key: string]: Worksheet
@@ -26,7 +26,7 @@ function loadWorksheetReducer(draft: WorksheetsState, action: LoadWorksheetActio
 function loadTOCReducer(draft: WorksheetsState, action: LoadTOCAction) {
   switch (action.status) {
     case AsyncStatus.Success:
-      const data = action.data as LoadTOCACtionData
+      const data = action.data as LoadTOCActionData
       data.sheets.forEach(it => {
         const { uuid, name, workbook } = it
         draft[it.uuid] = {

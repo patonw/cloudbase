@@ -2,7 +2,7 @@ import { Action } from "redux"
 import produce from "immer"
 
 import { Cell } from '../types'
-import { DIRTY_CELL, DirtyCellAction, EXECUTE_CELL, ExecuteCellAction, AsyncStatus } from "../actions";
+import { DIRTY_CELL, DirtyCellAction,  DIRTY_GRAPH, DirtyGraphAction, AFTER_COMMIT, AfterCommitAction } from "../actions";
 
 interface DirtyState {
   [key: string]: Cell
@@ -24,12 +24,23 @@ export default function dirtyReducer(state: DirtyState = {}, action: Action) {
         break
       }
 
-      case EXECUTE_CELL: {
-        const act = action as ExecuteCellAction
-        if (act.status === AsyncStatus.Success) {
-          const { uuid } = act
-          delete draft[uuid]
+      case DIRTY_GRAPH: {
+        const act = action as DirtyGraphAction
+        const { uuid, spec } = act
+
+        draft[uuid] = {
+          ...draft[uuid],
+          uuid,
+          spec,
         }
+
+        break
+      }
+
+      case AFTER_COMMIT: {
+        const act = action as AfterCommitAction
+          const { uuid } = act.data
+          delete draft[uuid]
         break
       }
     }

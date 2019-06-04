@@ -4,7 +4,7 @@ import produce from "immer"
 import { CellResult } from '../types'
 
 import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadWorksheetActionData, EXECUTE_CELL, ExecuteCellAction } from '../actions'
-
+import * as fp from 'lodash/fp'
 
 interface ResultsState {
   [key: string]: CellResult
@@ -42,6 +42,13 @@ function executeCellReducer(draft: ResultsState, action: ExecuteCellAction) {
       break
     case AsyncStatus.Failure:
       delete cell.progress
+      if (!error.message) {
+        error.message = fp.flow(
+          fp.map((it: Error) => it.message),
+          fp.join("\n\n")
+        )(error)
+      }
+
       cell.error = error
       break
   }

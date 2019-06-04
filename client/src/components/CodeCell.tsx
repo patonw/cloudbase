@@ -16,27 +16,37 @@ import 'codemirror/mode/clike/clike';
 import styles from './CodeCell.module.scss'
 
 interface CodeCellViewProps extends CodeCell {
+  embed?: boolean,
   executeCell: typeof executeCell,
   dirtyCell: typeof dirtyCell,
   process: UUID,
   result: CellResult,
 }
 
+// TODO toggle for JSON formatted results
 class CodeCellView extends React.Component<CodeCellViewProps, {}> {
   render() {
     const { uuid, script, result, process, executeCell, dirtyCell } = this.props
     const scriptHandler = () => executeCell(process, uuid)
-    const changeHandler = (cm: any, data: any, value: any) => dirtyCell(uuid, value)
+    const changeHandler = (cm: any, data: any, value: any) => {
+      const { script } = this.props
+      if (script !== value){
+        return dirtyCell(uuid, value)
+      }
+    }
 
     return (
       <div className={styles.cellContainer}>
         <div className="columns">
-          <div className="column is-narrow has-text-centered">
-            <button className={`button is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
-              <FontAwesomeIcon icon={faPlay} />
-            </button>
+          {
+            !this.props.embed &&
+            <div className="column is-narrow has-text-centered">
+              <button className={`button is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
+                <FontAwesomeIcon icon={faPlay} />
+              </button>
+            </div>
+          }
 
-          </div>
           <div className="column">
             <CodeMirror value={script}
               options={{
@@ -57,7 +67,7 @@ class CodeCellView extends React.Component<CodeCellViewProps, {}> {
 
             <div className={styles.resultBlock}>
               {result.data &&
-                <pre>Result = {result.data}</pre>
+                <pre>{result.data}</pre>
               }
 
               {result.error &&
@@ -66,7 +76,9 @@ class CodeCellView extends React.Component<CodeCellViewProps, {}> {
                     <p>Error</p>
                   </div>
                   <pre className="message-body">
-                    {result.error}
+                    {
+                      (result.error as Error).message
+                    }
                   </pre>
                 </article>
               }

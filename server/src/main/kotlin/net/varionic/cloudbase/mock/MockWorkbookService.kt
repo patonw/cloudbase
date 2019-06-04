@@ -5,13 +5,26 @@ import graphql.GraphQL
 import graphql.schema.idl.SchemaParser
 import net.varionic.cloudbase.*
 
+val vegaSpec = """
+{
+  "${'$'}schema": "https://vega.github.io/schema/vega-lite/v3.json",
+  "description": "A simple bar chart with embedded data.",
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "first", "type": "ordinal"},
+    "y": {"field": "second", "type": "quantitative"}
+  }
+}
+""".trimIndent()
 
 val allWorkbooks = listOf(
         Workbook(nextUUID(), "Bookish", listOf(
                 Worksheet(nextUUID(), "foobar", listOf(
-                        CodeCell(nextUUID(), """listOf(1, 4, 9, 13)"""),
+                        CodeCell(nextUUID(), """import kotlin.random.Random"""),
                         CodeCell(nextUUID(), """data class Foo(val x: Int, val y: Int)"""),
-                        CodeCell(nextUUID(), """Foo(5,10)""")
+                        CodeCell(nextUUID(), """Foo(5,10)"""),
+                        CodeCell(nextUUID(), """import kotlin.random.Random"""),
+                        GraphCell(nextUUID(), """(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }""", vegaSpec)
                 )),
 
                 Worksheet(nextUUID(), "hello", listOf(
@@ -75,11 +88,31 @@ class MockWorkbookSevice: WorkbookService {
                     cell?.script = script
                     cell
                 }
+
+                it.dataFetcher("setGraphSpec") { env ->
+                    val args = env.arguments
+                    val cellId = args["cellId"] as String
+                    val spec = args["spec"] as String
+
+                    val cell = allWorkbooks
+                            .flatMap { it.sheets }
+                            .flatMap { it.cells }
+                            .find { it.uuid == cellId }
+
+                    if (cell is GraphCell) {
+                        cell.spec = spec
+                    }
+
+                    cell
+                }
             }
 
             type("Cell") {
                 it.typeResolver { env ->
-                    env.schema.getObjectType("CodeCell")
+                    when(env.getObject<Cell>()) {
+                        is GraphCell -> env.schema.getObjectType("GraphCell")
+                        is CodeCell -> env.schema.getObjectType("CodeCell")
+                    }
                 }
             }
 

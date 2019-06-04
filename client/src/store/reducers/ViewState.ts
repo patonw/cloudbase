@@ -1,13 +1,16 @@
+import * as fp from 'lodash/fp'
 import produce from "immer"
+
 import { UUID } from '../types'
 import { Action } from "redux"
 
-import { isAsyncAction, LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LOAD_TOC, LoadTOCAction, LoadTOCACtionData } from '../actions'
+import { isAsyncAction, LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LOAD_TOC, LoadTOCAction, LoadTOCActionData, CLEAR_ERROR } from '../actions'
 
 interface ViewState {
   workbook?: UUID,
   worksheet?: UUID,
   loading: boolean,
+  errMsg?: string,
 }
 
 const initialViewState = {
@@ -40,7 +43,7 @@ function loadTOCReducer(draft: ViewState, action: LoadTOCAction) {
       break
     case AsyncStatus.Cached:
     case AsyncStatus.Success:
-      const data = action.data as LoadTOCACtionData
+      const data = action.data as LoadTOCActionData
       const {uuid} = data.workbooks[0] // TODO null safety
       draft.workbook = uuid
 
@@ -53,11 +56,23 @@ export default function viewStateReducer(state: ViewState = initialViewState, ac
   return produce(state, draft => {
     if (isAsyncAction(action)) {
       if (action.status === AsyncStatus.Failure) {
-        // TODO show an error
-        console.log("Some kind of error", action.error)
+        console.error("Async error", action)
+        const { error } = action
+
+        if (!error.message) {
+          error.message = fp.flow(
+            fp.map((it: Error) => it.message),
+            fp.join("\n\n")
+          )(error)
+        }
+        draft.errMsg = error.message
       }
     }
+
     switch (action.type) {
+      case CLEAR_ERROR:
+        delete draft.errMsg
+        break
       case LOAD_WORKSHEET:
         return loadWorksheetReducer(draft, action as LoadWorksheetAction)
       case LOAD_TOC:

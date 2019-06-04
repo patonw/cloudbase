@@ -79,8 +79,6 @@ class ExecuteCell {
 
     const data = resp.data
 
-    // TODO fire a secondary event if data.setCellScript is defined
-
     // Memoized parsing
     const json = data.executeCell.json &&
       fp.memoize(() => JSON.parse(data.executeCell.json))
@@ -105,7 +103,7 @@ class ExecuteCell {
 
   static getDirty(state: AppState, uuid: UUID) {
     if (uuid in state.dirty) {
-      return state.dirty[uuid].script
+      return state.dirty[uuid]
     }
 
     return undefined
@@ -128,6 +126,5 @@ class ExecuteCell {
 
 export const rootObserver = combineObservers(
   LoadTOC.observer as any,
-  //LoadWorksheet.observer,
   ExecuteCell.observer,
 )
