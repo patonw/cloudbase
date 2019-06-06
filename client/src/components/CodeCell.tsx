@@ -4,8 +4,6 @@ import { connect } from 'react-redux';
 import { UnControlled as CodeMirror } from 'react-codemirror2';
 import { AppState, CodeCell, executeCell, UUID, CellResult, dirtyCell } from '../store'
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay } from '@fortawesome/free-solid-svg-icons'
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/darcula.css';
@@ -30,60 +28,47 @@ class CodeCellView extends React.Component<CodeCellViewProps, {}> {
     const scriptHandler = () => executeCell(process, uuid)
     const changeHandler = (cm: any, data: any, value: any) => {
       const { script } = this.props
-      if (script !== value){
+      if (script !== value) {
         return dirtyCell(uuid, value)
       }
     }
 
     return (
-      <div className={styles.cellContainer}>
-        <div className="columns">
-          {
-            !this.props.embed &&
-            <div className="column is-narrow has-text-centered">
-              <button className={`button is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
-                <FontAwesomeIcon icon={faPlay} />
-              </button>
-            </div>
+      <div>
+        <CodeMirror value={script}
+          options={{
+            lineNumbers: true,
+            matchBrackets: true,
+            mode: "text/x-kotlin",
+            theme: "darcula",
+            extraKeys: {
+              "Ctrl-Enter": scriptHandler
+            }
+          }}
+          onChange={changeHandler}
+        />
+
+        {result.progress &&
+          <progress className={`${styles.progressbar} is-info progress`} max="100">60%</progress>
+        }
+
+        <div className={styles.resultBlock}>
+          {result.data &&
+            <pre>{result.data}</pre>
           }
 
-          <div className="column">
-            <CodeMirror value={script}
-              options={{
-                lineNumbers: true,
-                matchBrackets: true,
-                mode: "text/x-kotlin",
-                theme: "darcula",
-                extraKeys: {
-                  "Ctrl-Enter": scriptHandler
+          {result.error &&
+            <article className="message is-danger">
+              <div className="message-header">
+                <p>Error</p>
+              </div>
+              <pre className="message-body">
+                {
+                  (result.error as Error).message
                 }
-              }}
-              onChange={changeHandler}
-            />
-
-            {result.progress &&
-              <progress className={`${styles.progressbar} is-info progress`} max="100">60%</progress>
-            }
-
-            <div className={styles.resultBlock}>
-              {result.data &&
-                <pre>{result.data}</pre>
-              }
-
-              {result.error &&
-                <article className="message is-danger">
-                  <div className="message-header">
-                    <p>Error</p>
-                  </div>
-                  <pre className="message-body">
-                    {
-                      (result.error as Error).message
-                    }
-                  </pre>
-                </article>
-              }
-            </div>
-          </div>
+              </pre>
+            </article>
+          }
         </div>
 
       </div>

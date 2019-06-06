@@ -1,22 +1,24 @@
 package net.varionic.cloudbase
 
-import graphql.GraphQL
-import graphql.schema.idl.SchemaParser
 import java.util.*
-import javax.script.ScriptEngineManager
 
-interface WorkbookService: GraphQLService
+open class WorkbookService(val store: WorkbookStore): GraphQLService {
+    override val engine by lazy { store.engine() }
+}
 
 fun nextUUID() = UUID.randomUUID().toString()
 
-data class Workbook(val uuid: String, val name: String, val sheets: List<Worksheet>)
-data class Worksheet(val uuid: String, val name: String, val cells: List<Cell>)
+data class Workbook(val uuid: String, val name: String, val sheets: MutableList<Worksheet>)
+data class Worksheet(val uuid: String, val name: String, val cells: MutableList<Cell>)
 
 sealed class Cell(val uuid: String, var script: String)
 class CodeCell(uuid: String, script: String): Cell(uuid, script)
 class GraphCell(uuid: String, script: String, var spec: String) : Cell(uuid, script)
 
 data class CellResult(val uuid: String, val cell: Cell, val data: Any, val error: Throwable? = null)
+
+data class DeleteCellOutput(val sheet: Worksheet, val cell: Cell)
+data class InsertCellOutput(val sheet: Worksheet, val cell: Cell)
 
 val WorkbookGraphQLSchema = """
     type Query {
@@ -29,7 +31,14 @@ val WorkbookGraphQLSchema = """
         executeCell(processId: ID!, cellId: ID!): CellResult
         setCellScript(cellId: ID!, script: String!): Cell
         setGraphSpec(cellId: ID!, spec: String!): GraphCell
-        appendCell(sheetId: ID!, script: String): Cell
+        insertCell(sheetId: ID!, index: Int = -1, cellType: CellType = CODE): InsertCellOutput
+        reorderWorksheet(sheetId: ID!, cells: [ID!]!): Worksheet
+        deleteCell(sheetId: ID!, cellId: ID!): DeleteCellOutput
+    }
+
+    enum CellType {
+        CODE
+        GRAPH
     }
 
     type Workbook {
@@ -70,5 +79,15 @@ val WorkbookGraphQLSchema = """
         uuid: ID!
         sheet: Worksheet!
         results: [CellResult!]!
+    }
+
+    type DeleteCellOutput {
+        sheet: Worksheet!
+        cell: Cell!
+    }
+
+    type InsertCellOutput {
+        sheet: Worksheet!
+        cell: Cell!
     }
 """.trimIndent()

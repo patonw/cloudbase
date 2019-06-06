@@ -8,7 +8,7 @@ export enum AsyncStatus {
   Failure,
 }
 
-export const CLEAR_ERROR = Symbol('CLEAR_ERROR')
+export const CLEAR_ERROR = 'CLEAR_ERROR'
 export const START_APP = 'START_APP'
 export const LOAD_TOC = 'LOAD_TOC'
 export const LOAD_WORKSHEET = 'LOAD_WORKSHEET'
@@ -17,7 +17,11 @@ export const CREATE_CELL = 'CREATE_CELL'
 export const DIRTY_CELL = 'DIRTY_CELL'
 export const DIRTY_GRAPH = 'DIRTY_GRAPH'
 export const COMMIT_CELL = 'COMMIT_CELL'
-export const AFTER_COMMIT = Symbol('AFTER_COMMIT')
+export const AFTER_COMMIT = 'AFTER_COMMIT'
+export const INSERT_CODE_CELL = 'INSERT_CODE_CELL'
+export const INSERT_GRAPH_CELL = 'INSERT_GRAPH_CELL'
+export const DELETE_CELL = 'DELETE_CELL'
+export const REORDER_WORKSHEET = 'REORDER_WORKSHEET'
 
 // TODO Use generics for concrete actions
 export interface ActionOf<T> extends Action {
@@ -116,7 +120,35 @@ export interface CommitCellAction extends Action {
   uuid: UUID
 }
 
+export type InsertGraphCellAction = AsyncActionOf<{
+  sheetId: UUID
+  index?: number
+}>
+
+export type InsertCodeCellAction = AsyncActionOf<{
+  sheetId: UUID
+  index?: number
+  script?: string
+}>
+
+
+export type InsertCellResult = AsyncActionOf<{
+  sheetId: UUID
+  cells: UUID[]
+  cell: Cell
+}>
+
+export type DeleteCellAction = AsyncActionOf<{
+  sheetId: UUID
+  cellId: UUID
+}>
+
 export type AfterCommitAction = ActionOf<Cell>
+
+export type ReorderWorksheetAction = AsyncActionOf<{
+  sheetId: UUID
+  cells: UUID[]
+}>
 
 export function later(delay: number, value: any = null) {
   return new Promise(resolve => setTimeout(resolve, delay, value));
@@ -170,3 +202,47 @@ export const afterCommit = (data: Cell) => ({
   type: AFTER_COMMIT,
   data,
 })
+
+export function insertCodeCell(sheetId: UUID, index?: number, status = AsyncStatus.Pending): InsertCodeCellAction {
+  return {
+    type: INSERT_CODE_CELL,
+    status,
+    data: {
+      sheetId,
+      index,
+    }
+  }
+}
+
+export function insertGraphCell(sheetId: UUID, index?: number, status = AsyncStatus.Pending): InsertGraphCellAction {
+  return {
+    type: INSERT_GRAPH_CELL,
+    status,
+    data: {
+      sheetId,
+      index,
+    }
+  }
+}
+export function deleteCell(sheetId: UUID, cellId: UUID, status = AsyncStatus.Pending): DeleteCellAction {
+  return {
+    type: DELETE_CELL,
+    status,
+    data: {
+      sheetId,
+      cellId,
+    }
+  }
+}
+
+export function reorderWorksheet(sheetId: UUID, cells: UUID[], status = AsyncStatus.Pending): ReorderWorksheetAction {
+  return {
+    type: REORDER_WORKSHEET,
+    status,
+    data: {
+      sheetId,
+      cells,
+    }
+  }
+
+}

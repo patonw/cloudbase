@@ -2,6 +2,7 @@ import { ajax, AjaxResponse } from 'rxjs/ajax';
 import { Observable } from 'rxjs';
 import { UUID, Cell, isGraphCell } from './types'
 import { LoadWorksheetActionData } from './actions';
+import * as fp from 'lodash/fp'
 
 type Ajax = typeof ajax
 
@@ -172,3 +173,109 @@ export const executeCell = (processId: UUID, cellId: UUID, dirty?: Cell) => (dir
     cellId,
   }
 })
+
+export interface InsertCodeCellResponse extends GraphQLResponse {
+  data: {
+    insertCodeCell: {
+      sheet: {
+        uuid: string
+        cells: {
+          uuid: string
+        }[]
+      }
+      cell: {
+        __typename: string
+        uuid: string
+        script: string
+        spec?: string
+      }
+    }
+  }
+
+}
+export function insertCell(sheetId: UUID, index?: number, cellType: string = "CODE") {
+  let variables: any = {
+    sheetId,
+    cellType,
+  }
+
+  if (!fp.isUndefined(index))
+    variables.index = index
+
+  return {
+    query: `
+      mutation InsertCell($sheetId: ID!, $index: Int, $cellType: CellType) {
+        insertCell(sheetId: $sheetId, index: $index, cellType: $cellType) {
+          sheet {
+            uuid
+            cells {
+              uuid
+            }
+          }
+          cell {
+            __typename
+            uuid
+            script
+            ... on GraphCell {
+              spec
+            }
+          }
+        }
+      }
+    `,
+    variables,
+  }
+}
+
+export const insertCodeCell = (sheetId: UUID, index?: number) => insertCell(sheetId, index)
+
+export const insertGraphCell = (sheetId: UUID, index?: number) => insertCell(sheetId, index, "GRAPH")
+
+export function deleteCell(sheetId: UUID, cellId: UUID) {
+  return {
+    query:`
+      mutation Apoptosis($sheetId: ID!, $cellId: ID!) {
+        deleteCell(sheetId: $sheetId, cellId: $cellId) {
+          sheet {
+            uuid
+          }
+          cell {
+            uuid
+          }
+        }
+      }
+    `,
+    variables: {
+      sheetId,
+      cellId,
+    }
+  }
+}
+export interface ReorderWorksheetResponse {
+  data: {
+    reorderWorksheet: {
+      uuid: string
+      cells: {
+        uuid: string
+      }[]
+    }
+  }
+}
+export function reorderWorksheet(sheetId: UUID, cells: UUID[]) {
+  return {
+    query: `
+      mutation Disorder($sheetId: ID!, $cells: [ID!]!) {
+        reorderWorksheet(sheetId: $sheetId, cells: $cells) {
+          uuid
+          cells {
+            uuid
+          }
+        }
+      }
+    `,
+    variables: {
+      sheetId,
+      cells,
+    }
+  }
+}

@@ -3,7 +3,7 @@ import produce from "immer"
 
 import { CellResult } from '../types'
 
-import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadWorksheetActionData, EXECUTE_CELL, ExecuteCellAction } from '../actions'
+import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadWorksheetActionData, EXECUTE_CELL, ExecuteCellAction, INSERT_CODE_CELL, InsertCellResult } from '../actions'
 import * as fp from 'lodash/fp'
 
 interface ResultsState {
@@ -54,9 +54,20 @@ function executeCellReducer(draft: ResultsState, action: ExecuteCellAction) {
   }
 }
 
+function insertCellReducer(draft: ResultsState, action: InsertCellResult) {
+  if (action.status !== AsyncStatus.Success)
+    return
+
+  const { cell } = action.data
+  const { uuid } = cell
+  draft[uuid] = draft[uuid] || {}
+}
+
 export default function resultsReducer(state: ResultsState = {}, action: Action) {
   return produce(state, draft => {
     switch (action.type) {
+      case INSERT_CODE_CELL:
+        return insertCellReducer(draft, action as InsertCellResult)
       case LOAD_WORKSHEET:
         return loadWorksheetReducer(draft, action as LoadWorksheetAction)
       case EXECUTE_CELL:

@@ -7,13 +7,11 @@ import { connect } from 'react-redux';
 import { UnControlled as CodeMirror } from 'react-codemirror2';
 import VegaLite from 'react-vega-lite'
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay } from '@fortawesome/free-solid-svg-icons'
-
 import { AppState, GraphCell, CellResult, executeCell, dirtyGraph, UUID } from '../store'
 import CodeCell from './CodeCell'
 
 import styles from './CodeCell.module.scss'
+
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/darcula.css';
 import 'codemirror/addon/edit/matchbrackets';
@@ -70,7 +68,7 @@ class GraphCellView extends React.Component<GraphCellViewProps, ComponentState> 
   }
 
   renderCodeTab() {
-    const {uuid} = this.props
+    const { uuid } = this.props
     return (<div>
       <CodeCell embed={true} uuid={uuid} />
     </div>)
@@ -91,9 +89,11 @@ class GraphCellView extends React.Component<GraphCellViewProps, ComponentState> 
       }
 
       return (
-        <ErrorBoundary key={runCount}>
-          <VegaLite spec={jsonSpec} data={data}/>
-        </ErrorBoundary>
+        <div className={styles.graphResult}>
+          <ErrorBoundary key={runCount}>
+            <VegaLite spec={jsonSpec} data={data} />
+          </ErrorBoundary>
+        </div>
       )
     }
 
@@ -112,18 +112,18 @@ class GraphCellView extends React.Component<GraphCellViewProps, ComponentState> 
       <div>
 
         <CodeMirror value={spec}
-              options={{
-                lineNumbers: true,
-                matchBrackets: true,
-                mode: "application/json",
-                theme: "darcula",
-                extraKeys: {
-                  "Ctrl-Enter": () => this.runHandler()
-                }
-              }}
-              onChange={changeHandler}
-            />
-        { this.renderGraphResult() }
+          options={{
+            lineNumbers: true,
+            matchBrackets: true,
+            mode: "application/json",
+            theme: "darcula",
+            extraKeys: {
+              "Ctrl-Enter": () => this.runHandler()
+            }
+          }}
+          onChange={changeHandler}
+        />
+        {this.renderGraphResult()}
       </div>
     )
   }
@@ -135,32 +135,20 @@ class GraphCellView extends React.Component<GraphCellViewProps, ComponentState> 
   // TODO redraw button that skips script execution and rerenders graph
   render() {
     const { showGraph } = this.state
-    const { result } = this.props
-    const scriptHandler = () => this.runHandler()
 
     return (
-      <div className={styles.cellContainer}>
-        <div className="columns">
-          <div className="column is-narrow has-text-centered">
-            <button className={`button is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
-              <FontAwesomeIcon icon={faPlay} />
-            </button>
-          </div>
-
-          <div className="column">
-            <div className="tabs">
-              <ul>
-                <li className={showGraph ? "is-active" : ""}><a onClick={this.graphTab}>Graph</a></li>
-                <li className={!showGraph ? "is-active" : ""}><a onClick={this.codeTab}>Data</a></li>
-              </ul>
-            </div>
-            {
-              showGraph ?
-                this.renderGraphTab()
-                : this.renderCodeTab()
-            }
-          </div>
+      <div>
+        <div className="tabs">
+          <ul>
+            <li className={showGraph ? "is-active" : ""}><a onClick={this.graphTab}>Graph</a></li>
+            <li className={!showGraph ? "is-active" : ""}><a onClick={this.codeTab}>Data</a></li>
+          </ul>
         </div>
+        {
+          showGraph ?
+            this.renderGraphTab()
+            : this.renderCodeTab()
+        }
       </div>
     )
   }

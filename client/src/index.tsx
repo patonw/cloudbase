@@ -14,7 +14,7 @@ import { makeAjaxClient } from './store/graphql'
 
 import { run } from '@cycle/most-run'
 import { createCycleMiddleware } from 'redux-cycles'
-import {makeHTTPDriver} from '@cycle/http';
+import { makeHTTPDriver } from '@cycle/http';
 
 import main from './store/cycles'
 
@@ -35,7 +35,7 @@ const epicWare = createEpicMiddleware({
 const store = createStore(rootReducer, applyMiddleware(epicWare, cycleMiddleware))
 epicWare.run(rootEpic)
 store.dispatch(startApp())
-//store.subscribe(() => console.log(store.getState()))
+store.subscribe(() => console.log(store.getState()))
 
 run(main, drivers)
 

@@ -13,13 +13,14 @@ import io.ktor.http.content.static
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import net.varionic.cloudbase.mock.MockWorkbookSevice
+import net.varionic.cloudbase.mock.MockWorkbookStore
 import org.koin.dsl.module
 import org.koin.ktor.ext.Koin
 
 fun Application.main() {
     val myModule = module {
-        single { MockWorkbookSevice() as GraphQLService }
+        single { MockWorkbookStore() as WorkbookStore}
+        single { WorkbookService(get()) as GraphQLService }
     }
 
     install(Koin) {
