@@ -14,7 +14,7 @@ import styles from './CodeCell.module.scss'
 interface CellViewProps {
   cell: Cell
   process: string,
-
+  locked: boolean,
   worksheet: Worksheet,
   executeCell: typeof executeCell,
   deleteCell: typeof deleteCell,
@@ -24,14 +24,17 @@ interface CellViewProps {
 
 class CellView extends React.Component<CellViewProps, {}> {
   render() {
-    const { cell, result, worksheet } = this.props
+    const { cell, locked, result, worksheet } = this.props
     const { process, executeCell, deleteCell, reorderWorksheet } = this.props
     const { uuid, } = cell
 
-    const moveUp = () => {
-      let order = worksheet.cells
-      const pos = order.findIndex(it => it === uuid)
+    let order = worksheet.cells
+    const pos = order.findIndex(it => it === uuid)
 
+    const isFirst = pos === 0
+    const isLast = pos === order.length-1
+
+    const moveUp = () => {
       if (pos > 0) {
         [order[pos-1], order[pos]] = [order[pos], order[pos-1]]
         reorderWorksheet(worksheet.uuid, order)
@@ -57,13 +60,13 @@ class CellView extends React.Component<CellViewProps, {}> {
           <button className={`${styles.runner} button is-block is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
             <FontAwesomeIcon icon={faPlay} />
           </button>
-          <button className={`button is-block is-small`} onClick={moveUp}>
+          <button className={`button is-block is-small`} onClick={moveUp} disabled={isFirst}>
             <FontAwesomeIcon icon={faArrowCircleUp} />
           </button>
-          <button className={`button is-block is-small`} onClick={moveDown}>
+          <button className={`button is-block is-small`} onClick={moveDown} disabled={isLast}>
             <FontAwesomeIcon icon={faArrowCircleDown} />
           </button>
-          <button className={`button is-block is-small ${styles.trash}`} onClick={trashHandler}>
+          <button className={`button is-block is-small ${styles.trash}`} onClick={trashHandler} disabled={locked}>
             <FontAwesomeIcon icon={faTrashAlt} />
           </button>
         </div>
@@ -90,6 +93,7 @@ function mapState(state: AppState, ownProps: any): CellViewProps {
   return {
     ...ownProps,
     cell,
+    locked: state.view.locked,
     reorderWorksheet,
     worksheet,
     process,

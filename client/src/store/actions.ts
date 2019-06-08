@@ -25,6 +25,9 @@ export const INSERT_GRAPH_CELL = 'INSERT_GRAPH_CELL'
 export const DELETE_CELL = 'DELETE_CELL'
 export const REORDER_WORKSHEET = 'REORDER_WORKSHEET'
 
+export const LOCK_WORKSHEET = 'LOCK_WORKSHEET'
+export const UNLOCK_WORKSHEET = 'UNLOCK_WORKSHEET'
+
 // TODO Use generics for concrete actions
 export interface ActionOf<T> extends Action {
   data: T
@@ -276,5 +279,17 @@ export function createProcess(sheetId: UUID, procId?: UUID,status = AsyncStatus.
       sheetId,
       procId,
     }
+  }
+}
+
+export function lockWorksheet() {
+  return {
+    type: LOCK_WORKSHEET
+  }
+}
+
+export function unlockWorksheet() {
+  return {
+    type: UNLOCK_WORKSHEET
   }
 }

@@ -6,6 +6,7 @@ import { AppState, Worksheet, insertCodeCell, insertGraphCell } from '../store'
 import CellView from './CellView'
 
 interface WorksheetProps extends Worksheet {
+  locked: boolean,
   loading: boolean,
   insertCodeCellDispatch: typeof insertCodeCell
   insertGraphCellDispatch: typeof insertGraphCell
@@ -45,6 +46,7 @@ function mapState(state: AppState, ownProps: any) {
     uuid,
     name,
     workbook,
+    locked: state.view.locked,
     cells,
     process,
     loading,

@@ -4,6 +4,7 @@ import { loadWorksheet, createWorksheet } from '../store'
 import { Workbook, Worksheet, UUID, AppState } from '../store'
 import { connect } from 'react-redux';
 
+import WorkbookItem from './WorkbookItem'
 import WorksheetView from './Worksheet'
 
 interface WorkbookProps {
@@ -100,7 +101,8 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
       })
     }
 
-    const { worksheet, loadWorksheet, sheets } = this.props
+    const { worksheet, sheets } = this.props
+
     return (
       <div className="container">
         <div className="columns">
@@ -110,12 +112,9 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
                 Worksheets
             </p>
               <ul className="menu-list">
-                {sheets.map((it) =>
-                  // eslint-disable-next-line
-                  <a key={it.uuid} className={it.uuid === worksheet ? "is-active" : ""} onClick={() => loadWorksheet(it.uuid)}>
-                    <li>{it.name}</li>
-                  </a>
-                )}
+                {
+                  sheets.map((it) => <WorkbookItem key={it.uuid} uuid={it.uuid} />)
+                }
               </ul>
               <hr />
               <button className="button" onClick={openModal}>New...</button>
