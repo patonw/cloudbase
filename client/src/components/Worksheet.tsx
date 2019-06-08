@@ -21,7 +21,7 @@ class WorksheetView extends React.Component<WorksheetProps, {}> {
     // TODO if worksheet is selected but still waiting on fetch, show spinner
     if (loading) {
       return (
-        <div>Loading...</div>
+        <progress className={`is-info progress`} max="100">60%</progress>
       )
     }
 

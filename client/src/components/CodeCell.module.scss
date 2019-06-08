@@ -21,6 +21,8 @@
   //border-style: solid;
   //border-width: 1px;
   background-color: #eff0f1;
+  overflow-x: auto;
+  max-width: 0.8 * $fullhd;
 }
 
 .progressbar {
@@ -29,8 +31,25 @@
 
 .graphResult {
   overflow-x: auto;
-  max-width: 74vw;
+  max-width: 0.8 * $fullhd;
   @include touch {
     max-width: 100%;
+  }
+}
+
+.runner {
+  margin-bottom: 1em;
+}
+
+.toolbar {
+  position: relative;
+}
+
+.trash {
+  position: absolute;
+  bottom: 1em;
+  @include touch {
+    right: 1em;
+    bottom: auto;
   }
 }

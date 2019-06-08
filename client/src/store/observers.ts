@@ -6,7 +6,7 @@ import { catchError, map, pluck, filter, switchMap, delay, flatMap } from 'rxjs/
 
 import { AppState } from './reducers'
 import { Observable, of } from 'rxjs';
-import { START_APP, AsyncStatus, LOAD_TOC, AsyncAction, EXECUTE_CELL, ExecuteCellAction } from './actions';
+import { AsyncStatus, LOAD_TOC, AsyncAction, EXECUTE_CELL, ExecuteCellAction } from './actions';
 
 import * as gql from './graphql'
 import { UUID } from './types';
@@ -60,7 +60,8 @@ class LoadTOC {
   })
 
   static observer = (action$: Observable<Action>, state$: Observable<AppState>, { graphql }: ObserverDeps) => action$.pipe(
-    ofType(START_APP),
+    ofType(LOAD_TOC),
+    ofStatus(AsyncStatus.Pending),
     switchMap(() =>
       graphql(gql.loadTOC()).pipe(
         pluck('response'),

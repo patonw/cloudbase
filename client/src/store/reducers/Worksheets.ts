@@ -1,9 +1,19 @@
 import produce from "immer"
+import fp from 'lodash/fp'
+
 import { Action } from "redux"
 import { Worksheet } from '../types'
 
-import { LoadWorksheetAction, LOAD_WORKSHEET, AsyncStatus, LoadTOCAction, LOAD_TOC, LoadTOCActionData, LoadWorksheetActionData, DELETE_CELL, DeleteCellAction, INSERT_CODE_CELL, InsertCellResult, ReorderWorksheetAction, REORDER_WORKSHEET } from '../actions'
-import fp from 'lodash/fp'
+import {
+  AsyncStatus,
+  LOAD_TOC, LoadTOCAction, LoadTOCActionData,
+  DELETE_CELL, DeleteCellAction,
+  INSERT_CODE_CELL, InsertCellResult,
+  REORDER_WORKSHEET, ReorderWorksheetAction,
+  CREATE_PROCESS, CreateProcessAction,
+  LOAD_WORKSHEET, LoadWorksheetAction, LoadWorksheetActionData,
+} from '../actions'
+
 interface WorksheetsState {
   [key: string]: Worksheet
 }
@@ -13,9 +23,9 @@ function loadWorksheetReducer(draft: WorksheetsState, action: LoadWorksheetActio
     case AsyncStatus.Success:
       // TODO normalize etc,
       const data = action.data as LoadWorksheetActionData
-      const {uuid} = action
+      const { uuid } = action
 
-      draft[uuid] = fp.merge(draft[uuid] || {},{
+      draft[uuid] = fp.merge(draft[uuid] || {}, {
         ...data,
         cells: data.cells.map(it => it.uuid)
       })
@@ -37,7 +47,7 @@ function loadTOCReducer(draft: WorksheetsState, action: LoadTOCAction) {
         }
       })
 
-      fp.toPairs(data.processes).forEach(([pid,wsid]) => {
+      fp.toPairs(data.processes).forEach(([pid, wsid]) => {
         draft[wsid].process = pid
       })
   }
@@ -68,7 +78,7 @@ function reorderWorksheetReducer(draft: WorksheetsState, action: ReorderWorkshee
   if (action.status !== AsyncStatus.Success)
     return
 
-  const {sheetId, cells} = action.data
+  const { sheetId, cells } = action.data
   const sheet = draft[sheetId]
   if (!!sheet)
     sheet.cells = cells
@@ -87,6 +97,13 @@ export default function worksheetsReducer(state: WorksheetsState = {}, action: A
         return insertCellReducer(draft, action as InsertCellResult)
       case REORDER_WORKSHEET:
         return reorderWorksheetReducer(draft, action as ReorderWorksheetAction)
+      case CREATE_PROCESS: {
+        const act = action as CreateProcessAction
+        if (act.status === AsyncStatus.Success) {
+          const { sheetId, procId } = act.data
+          draft[sheetId].process = procId
+        }
+      }
     }
   })
 }

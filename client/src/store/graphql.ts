@@ -279,3 +279,63 @@ export function reorderWorksheet(sheetId: UUID, cells: UUID[]) {
     }
   }
 }
+
+export interface CreateWorksheetResponse extends GraphQLResponse {
+  data: {
+    createWorksheet: LoadWorksheetActionData,
+  }
+}
+
+export function createWorksheet(bookId: UUID, name: string) {
+  return {
+    query: `
+      mutation CreateWorksheet($bookId: ID!, $name: String) {
+        createWorksheet(workbookId: $bookId, name: $name) {
+          uuid
+          name
+          cells {
+            __typename
+            uuid
+            script
+            ... on GraphCell {
+              spec
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      bookId,
+      name,
+    }
+  }
+}
+
+export interface CreateProcessResponse {
+  data: {
+    createProcess: {
+      uuid: UUID,
+      sheet: {
+        uuid: UUID,
+      }
+    }
+  }
+}
+
+export function createProcess(sheetId: UUID) {
+  return {
+    query: `
+      mutation CreateProcess($sheetId: ID!) {
+        createProcess(sheetId: $sheetId) {
+          uuid
+          sheet {
+            uuid
+          }
+        }
+      }
+    `,
+    variables: {
+      sheetId,
+    }
+  }
+}

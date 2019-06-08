@@ -1,8 +1,13 @@
 package net.varionic.cloudbase
 
 import com.google.gson.Gson
-import graphql.GraphQL
+import graphql.*
+import graphql.execution.DataFetcherExceptionHandler
+import graphql.execution.DataFetcherExceptionHandlerParameters
+import graphql.execution.DataFetcherExceptionHandlerResult
+import graphql.language.SourceLocation
 import graphql.schema.idl.SchemaParser
+import java.lang.RuntimeException
 
 interface WorkbookStore {
     val allWorkbooks: MutableList<Workbook>
@@ -10,6 +15,18 @@ interface WorkbookStore {
 
     fun <T> transaction(block: WorkbookStore.() -> T): T
 }
+
+class CustomErrorHandler : DataFetcherExceptionHandler {
+    override fun onException(params: DataFetcherExceptionHandlerParameters) =
+            DataFetcherExceptionHandlerResult.Builder().run {
+                val inner = params.exception
+                val wrapped = ExceptionWhileDataFetching(params.path, inner, params.sourceLocation)
+                this.error(wrapped)
+                build()
+            }
+}
+
+class InvalidUUID(val msg: String): RuntimeException(msg)
 
 fun WorkbookStore.engine(): GraphQL {
     val registry = SchemaParser().parse(WorkbookGraphQLSchema)
@@ -36,6 +53,41 @@ fun WorkbookStore.engine(): GraphQL {
         }
 
         type("Mutation") { mut ->
+            mut.dataFetcher("createWorksheet") { env ->
+                val bookId = env.getArgument<String>("workbookId")
+                val name = env.getArgument<String>("name")
+                transaction {
+                    val book = allWorkbooks.find { it.uuid == bookId}
+                            ?: throw InvalidUUID("Workbook $bookId does not exist")
+
+                    // TODO retry until unique
+                    val nameExists = book.sheets.any { it.name == name }
+                    val uuid = nextUUID()
+                    val prefix = uuid.take(5)
+
+                    val autoName = if (nameExists) "$name ($prefix)" else name
+                    val sheet = Worksheet(uuid, autoName, mutableListOf())
+                    book.sheets.add(sheet)
+
+                    //allProcesses.add(SheetContext(nextUUID(), sheet))
+                    sheet
+                }
+            }
+
+            mut.dataFetcher("createProcess") { env ->
+                val sheetId = env.getArgument<String>("sheetId")
+
+                transaction {
+                    val sheet = allWorkbooks.flatMap { it.sheets }
+                            .find { it.uuid == sheetId }
+                            ?: throw InvalidUUID("Worksheet $sheetId does not exist")
+
+                    val proc = SheetContext(nextUUID(), sheet)
+                    allProcesses.add(proc)
+                    proc
+                }
+            }
+
             // Adds a new server into the mock database
             mut.dataFetcher("executeCell") { env ->
                 val args = env.arguments
@@ -45,9 +97,11 @@ fun WorkbookStore.engine(): GraphQL {
                 // TODO error handling
                 transaction {
                     val context = allProcesses.find { it.uuid == ctxId }
-                    context?.executeCell(cellId)
+                    context ?: throw InvalidUUID("Process $ctxId does not exist")
+                    context.executeCell(cellId)
                 }
             }
+
             mut.dataFetcher("setCellScript") { env ->
                 val args = env.arguments
                 val cellId = args["cellId"] as String
@@ -58,7 +112,8 @@ fun WorkbookStore.engine(): GraphQL {
                             .flatMap { it.sheets }
                             .flatMap { it.cells }
                             .find { it.uuid == cellId }
-                    cell?.script = script
+                    cell ?: throw InvalidUUID("Cell $cellId does not exist")
+                    cell.script = script
                     cell
                 }
             }

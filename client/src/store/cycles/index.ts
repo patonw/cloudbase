@@ -1,13 +1,26 @@
 import { Action } from 'redux';
-import { LOAD_WORKSHEET, AsyncAction, AsyncStatus, LoadWorksheetAction, EXECUTE_CELL, ExecuteCellAction, afterCommit, DELETE_CELL, DeleteCellAction, deleteCell, INSERT_CODE_CELL, InsertCodeCellAction, InsertCellResult, INSERT_GRAPH_CELL, InsertGraphCellAction, ReorderWorksheetAction, REORDER_WORKSHEET, reorderWorksheet } from './actions';
-
-import * as gql from './graphql'
-import { combineCycles } from 'redux-cycles';
 import * as fp from 'lodash/fp'
+
 import { Stream } from 'most'
 import * as most from 'most'
-import { AppState } from './reducers';
+
+import { combineCycles } from 'redux-cycles';
 import { RequestInput } from '@cycle/http';
+
+import * as gql from '../graphql'
+import { AppState } from '../reducers';
+import {
+  AsyncAction, AsyncStatus,
+  START_APP, loadToc,
+  LOAD_WORKSHEET, LoadWorksheetAction,
+  EXECUTE_CELL, ExecuteCellAction, afterCommit,
+  DELETE_CELL, DeleteCellAction, deleteCell,
+  INSERT_CODE_CELL, InsertCodeCellAction, InsertCellResult,
+  INSERT_GRAPH_CELL, InsertGraphCellAction,
+  REORDER_WORKSHEET, ReorderWorksheetAction, reorderWorksheet,
+  CREATE_WORKSHEET, CreateWorksheetAction, createWorksheet,
+  CREATE_PROCESS, createProcess, CreateProcessAction
+} from '../actions';
 
 function ofType(tag: any) {
   return (action: Action) => action.type === tag
@@ -37,7 +50,68 @@ function flatCatch(resp$$: Stream<Stream<Response>>): Stream<Response> {
     )
 }
 
-export function loadWorksheetCycle(sources: any) {
+function loggerCycle(sources: any) {
+  const action$: Stream<Action> = sources.ACTION
+  const dummy$ = action$
+    .tap(act => { console.debug("ACTION", act) })
+    .flatMap(act => most.empty())
+  return {
+    ACTION: dummy$
+  }
+}
+
+function processCycle(sources: any) {
+  const action$: Stream<Action> = sources.ACTION
+  const state$: Stream<AppState> = sources.STATE
+
+  const wsReq$: Stream<LoadWorksheetAction> = action$
+    .filter(ofType(LOAD_WORKSHEET))
+    .map(action => action as LoadWorksheetAction)
+    .filter(ofStatus(AsyncStatus.Pending))
+
+  const fromLoadSheet$ = wsReq$
+    .sample((action, state) => ({ action, state }),
+      wsReq$,
+      state$)
+    .filter(({ action, state }) => action.uuid! in state.worksheets)
+    .map(({ action }) => createProcess(action.uuid))
+
+  const request$: Stream<RequestInput> = action$
+    .filter(ofType(CREATE_PROCESS))
+    .map(it => it as CreateProcessAction)
+    .filter(ofStatus(AsyncStatus.Pending))
+    .map((act) => gql.createProcess(act.data.sheetId))
+    .map(body => ({
+      url: '/graphql',
+      category: CREATE_PROCESS,
+      method: "POST",
+      send: body,
+    }))
+
+  const resp$: Stream<Response> = sources.HTTP
+    .select(CREATE_PROCESS)
+    .thru(flatCatch)
+
+
+  const reaction$ = resp$.flatMap(resp => {
+    // TODO handle errors
+    if (!isOK(resp))
+      return most.empty()
+
+    const body = resp.body as gql.CreateProcessResponse
+    const sheetId = body.data.createProcess.sheet.uuid
+    const procId = body.data.createProcess.uuid
+
+    return most.of(createProcess(sheetId, procId, AsyncStatus.Success))
+  })
+
+  return {
+    ACTION: reaction$.merge(fromLoadSheet$),
+    HTTP: request$,
+  }
+}
+
+function loadWorksheetCycle(sources: any) {
   const request$: Stream<RequestInput> = sources.ACTION
     .filter(ofType(LOAD_WORKSHEET))
     .filter(ofStatus(AsyncStatus.Pending))
@@ -116,7 +190,7 @@ function deleteCellCycle(sources: any) {
     .map(act => act as DeleteCellAction)
     .filter(ofStatus(AsyncStatus.Pending))
     .map(act => act.data)
-    .map(({sheetId, cellId}) => gql.deleteCell(sheetId, cellId))
+    .map(({ sheetId, cellId }) => gql.deleteCell(sheetId, cellId))
     .map(body => ({
       url: '/graphql',
       category: DELETE_CELL,
@@ -156,7 +230,7 @@ function insertCellCycle(sources: any) {
     .map(act => act as InsertCodeCellAction)
     .filter(ofStatus(AsyncStatus.Pending))
     .map(act => act.data)
-    .map(({sheetId, index}) => gql.insertCodeCell(sheetId, index))
+    .map(({ sheetId, index }) => gql.insertCodeCell(sheetId, index))
     .map(body => ({
       url: '/graphql',
       category: INSERT_CODE_CELL,
@@ -170,7 +244,7 @@ function insertCellCycle(sources: any) {
     .map(act => act as InsertGraphCellAction)
     .filter(ofStatus(AsyncStatus.Pending))
     .map(act => act.data)
-    .map(({sheetId, index}) => gql.insertGraphCell(sheetId, index))
+    .map(({ sheetId, index }) => gql.insertGraphCell(sheetId, index))
     .map(body => ({
       url: '/graphql',
       category: INSERT_CODE_CELL,
@@ -197,7 +271,7 @@ function insertCellCycle(sources: any) {
           status: AsyncStatus.Success,
           data: {
             sheetId: data.sheet.uuid,
-            cells: data.sheet.cells.map((it:any) => it.uuid),
+            cells: data.sheet.cells.map((it: any) => it.uuid),
             cell: {
               worksheet: data.sheet.uuid,
               uuid: data.cell.uuid,
@@ -206,12 +280,11 @@ function insertCellCycle(sources: any) {
               spec: data.cell.spec
             }
           }
-
-
         }
 
         return most.of(action)
       }
+
       return most.empty()
     })
 
@@ -229,7 +302,7 @@ function reorderWorksheetCycle(sources: any) {
     .map(act => act as ReorderWorksheetAction)
     .filter(ofStatus(AsyncStatus.Pending))
     .map(act => act.data)
-    .map(({sheetId, cells}) => gql.reorderWorksheet(sheetId, cells))
+    .map(({ sheetId, cells }) => gql.reorderWorksheet(sheetId, cells))
     .map(body => ({
       url: '/graphql',
       category: REORDER_WORKSHEET,
@@ -263,10 +336,69 @@ function reorderWorksheetCycle(sources: any) {
   }
 }
 
+export function createWorksheetCycle(sources: any) {
+  const action$: Stream<Action> = sources.ACTION
+
+  const request$: Stream<RequestInput> = action$
+    .filter(ofType(CREATE_WORKSHEET))
+    .map(act => act as CreateWorksheetAction)
+    .filter(ofStatus(AsyncStatus.Pending))
+    .map(act => act.data)
+    .map(data => gql.createWorksheet(data.bookId, data.name))
+    .map(body => ({
+      url: '/graphql',
+      category: CREATE_WORKSHEET,
+      method: "POST",
+      send: body,
+    }))
+
+  const resp$: Stream<Response> = sources.HTTP
+    .select(CREATE_WORKSHEET)
+    .thru(flatCatch)
+
+  const reaction$: Stream<InsertCellResult> = resp$
+    .flatMap(resp => {
+      // TODO map errors
+      if (!isOK(resp))
+        return most.empty()
+
+      const body = resp.body as gql.CreateWorksheetResponse
+      const sheet = body.data.createWorksheet
+
+      const bookId = fp.get("request.send.variables.bookId", resp)
+
+      const action: CreateWorksheetAction = createWorksheet(bookId, sheet.name, AsyncStatus.Success)
+      const tocAction = loadToc()
+
+      return most.from([action, tocAction])
+    })
+
+  return {
+    HTTP: request$,
+    ACTION: reaction$,
+  }
+}
+
+function startAppCycle(sources: any) {
+  const action$: Stream<Action> = sources.ACTION
+
+  const reaction$ = action$
+    .filter(ofType(START_APP))
+    .map(act => loadToc())
+
+  return {
+    ACTION: reaction$
+  }
+}
+
 export default combineCycles(
+  startAppCycle,
+  loggerCycle,
   loadWorksheetCycle,
   afterCommitCycle,
   deleteCellCycle,
   insertCellCycle,
   reorderWorksheetCycle,
-  )
+  createWorksheetCycle,
+  processCycle,
+)

@@ -53,18 +53,18 @@ class CellView extends React.Component<CellViewProps, {}> {
 
     return <div className={styles.cellContainer}>
       <div className="columns">
-        <div className="column is-narrow has-text-centered is-flex-touch">
-          <button className={`button is-block is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
+        <div className={`column is-narrow has-text-centered is-flex-touch ${styles.toolbar}`}>
+          <button className={`${styles.runner} button is-block is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
             <FontAwesomeIcon icon={faPlay} />
-          </button>
-          <button className={`button is-block is-small`} onClick={trashHandler}>
-            <FontAwesomeIcon icon={faTrashAlt} />
           </button>
           <button className={`button is-block is-small`} onClick={moveUp}>
             <FontAwesomeIcon icon={faArrowCircleUp} />
           </button>
           <button className={`button is-block is-small`} onClick={moveDown}>
             <FontAwesomeIcon icon={faArrowCircleDown} />
+          </button>
+          <button className={`button is-block is-small ${styles.trash}`} onClick={trashHandler}>
+            <FontAwesomeIcon icon={faTrashAlt} />
           </button>
         </div>
         <div className="column">

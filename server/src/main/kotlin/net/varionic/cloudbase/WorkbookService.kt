@@ -28,6 +28,8 @@ val WorkbookGraphQLSchema = """
     }
 
     type Mutation {
+        createWorksheet(workbookId: ID!, name: String = "Untitled"): Worksheet!
+        createProcess(sheetId: ID!): Process!
         executeCell(processId: ID!, cellId: ID!): CellResult
         setCellScript(cellId: ID!, script: String!): Cell
         setGraphSpec(cellId: ID!, spec: String!): GraphCell

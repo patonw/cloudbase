@@ -34,8 +34,7 @@ const epicWare = createEpicMiddleware({
 
 const store = createStore(rootReducer, applyMiddleware(epicWare, cycleMiddleware))
 epicWare.run(rootEpic)
-store.dispatch(startApp())
-store.subscribe(() => console.log(store.getState()))
+store.subscribe(() => console.debug("STATE", store.getState()))
 
 run(main, drivers)
 
@@ -47,3 +46,4 @@ ReactDOM.render(
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
+store.dispatch(startApp())

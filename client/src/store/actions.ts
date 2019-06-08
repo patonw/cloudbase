@@ -10,6 +10,8 @@ export enum AsyncStatus {
 
 export const CLEAR_ERROR = 'CLEAR_ERROR'
 export const START_APP = 'START_APP'
+export const CREATE_WORKSHEET = 'CREATE_WORKSHEET'
+export const CREATE_PROCESS = 'CREATE_PROCESS'
 export const LOAD_TOC = 'LOAD_TOC'
 export const LOAD_WORKSHEET = 'LOAD_WORKSHEET'
 export const EXECUTE_CELL = 'EXECUTE_CELL'
@@ -63,6 +65,11 @@ export interface LoadTOCAction extends AsyncAction {
   data?: LoadTOCActionData
   error?: any
 }
+
+export type CreateWorksheetAction = AsyncActionOf<{
+  bookId: UUID,
+  name: string
+}>
 
 export interface LoadWorksheetActionData {
   uuid: UUID
@@ -120,6 +127,11 @@ export interface CommitCellAction extends Action {
   uuid: UUID
 }
 
+export type CreateProcessAction = AsyncActionOf<{
+  sheetId: UUID,
+  procId?: UUID,
+}>
+
 export type InsertGraphCellAction = AsyncActionOf<{
   sheetId: UUID
   index?: number
@@ -162,16 +174,25 @@ export function clearError(): Action {
 
 export const startApp = () => ({ type: START_APP })
 
+export const loadToc = (status = AsyncStatus.Pending) => ({
+  type: LOAD_TOC,
+  status,
+})
+
+export const createWorksheet = (bookId: UUID, name: string, status = AsyncStatus.Pending) => ({
+  type: CREATE_WORKSHEET,
+  status,
+  data: {
+    bookId,
+    name,
+  }
+})
+
 export const loadWorksheet = (uuid: UUID, status = AsyncStatus.Pending) => ({
   type: LOAD_WORKSHEET,
   status,
   uuid,
 })
-
-// TODO getOrCreateProcess
-// TODO restartProcess
-// TODO createCodeCell
-// TODO createGraphCell
 
 export const executeCell = (processId: UUID, cellId: UUID, status = AsyncStatus.Pending) => ({
   type: EXECUTE_CELL,
@@ -245,4 +266,15 @@ export function reorderWorksheet(sheetId: UUID, cells: UUID[], status = AsyncSta
     }
   }
 
+}
+
+export function createProcess(sheetId: UUID, procId?: UUID,status = AsyncStatus.Pending) {
+  return {
+    type: CREATE_PROCESS,
+    status,
+    data: {
+      sheetId,
+      procId,
+    }
+  }
 }
