@@ -39,6 +39,10 @@
 
 .runner {
   margin-bottom: 1em;
+  @include touch {
+    margin-bottom: auto;
+    margin-right: 1em;
+  }
 }
 
 .toolbar {
@@ -46,10 +50,9 @@
 }
 
 .trash {
-  position: absolute;
-  bottom: 1em;
-  @include touch {
-    right: 1em;
-    bottom: auto;
+  margin-top: 1em;
+  @include mobile {
+    margin-top: auto;
+    margin-left: 1em;
   }
 }

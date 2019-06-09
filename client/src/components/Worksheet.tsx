@@ -8,6 +8,7 @@ import CellView from './CellView'
 interface WorksheetProps extends Worksheet {
   locked: boolean,
   loading: boolean,
+  name: string,
   insertCodeCellDispatch: typeof insertCodeCell
   insertGraphCellDispatch: typeof insertGraphCell
 }

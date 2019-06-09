@@ -46,7 +46,6 @@ fun WorkbookStore.engine(): GraphQL {
                 allProcesses
             }
 
-
             it.dataFetcher("worksheet") { env ->
                 val sheetId = env.getArgument<String>("sheetId")
                 allWorkbooks
@@ -69,7 +68,7 @@ fun WorkbookStore.engine(): GraphQL {
                     val prefix = uuid.take(5)
 
                     val autoName = if (nameExists) "$name ($prefix)" else name
-                    val sheet = Worksheet(uuid, bookId, autoName, mutableListOf())
+                    val sheet = Worksheet(uuid, bookId, autoName, mutableListOf(CodeCell(nextUUID(), "")))
                     allWorksheets.add(sheet)
 
                     //allProcesses.add(SheetContext(nextUUID(), sheet))

@@ -71,7 +71,8 @@ export interface LoadTOCAction extends AsyncAction {
 
 export type CreateWorksheetAction = AsyncActionOf<{
   bookId: UUID,
-  name: string
+  name: string,
+  sheetId?: UUID,
 }>
 
 export interface LoadWorksheetActionData {
@@ -182,12 +183,13 @@ export const loadToc = (status = AsyncStatus.Pending) => ({
   status,
 })
 
-export const createWorksheet = (bookId: UUID, name: string, status = AsyncStatus.Pending) => ({
+export const createWorksheet = (bookId: UUID, name: string, sheetId ?: UUID, status = AsyncStatus.Pending) => ({
   type: CREATE_WORKSHEET,
   status,
   data: {
     bookId,
     name,
+    sheetId,
   }
 })
 

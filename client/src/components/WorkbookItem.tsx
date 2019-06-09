@@ -28,7 +28,9 @@ class WorkbookItem extends React.Component<WorkbookItemProps, {}> {
 
     return (
       <ul>
-        <li>Restart</li>
+        <li>Run All Cells</li>
+        <li>Clear Output</li>
+        <li>Restart Sheet</li>
         <li>
           {
             locked
@@ -45,14 +47,15 @@ class WorkbookItem extends React.Component<WorkbookItemProps, {}> {
 
   render() {
     const { activeItem, worksheet, loadWorksheet } = this.props
-    const styleClass = activeItem ? "is-active" : ""
     const loadHandler = () => loadWorksheet(worksheet.uuid)
 
     return (
       <li>
-        <a className={styleClass} onClick={loadHandler}>
-          {worksheet.name}
-        </a>
+        {
+          activeItem
+          ? <a className="is-active">{ worksheet.name}</a>
+          : <a onClick={loadHandler}>{worksheet.name}</a>
+        }
         {activeItem && this.renderSubmenu()}
       </li>
     )

@@ -19,7 +19,7 @@ import {
   INSERT_GRAPH_CELL, InsertGraphCellAction,
   REORDER_WORKSHEET, ReorderWorksheetAction, reorderWorksheet,
   CREATE_WORKSHEET, CreateWorksheetAction, createWorksheet,
-  CREATE_PROCESS, createProcess, CreateProcessAction
+  CREATE_PROCESS, createProcess, CreateProcessAction, LoadTOCAction, LOAD_TOC, loadWorksheet, LoadTOCActionData
 } from '../actions';
 
 function ofType(tag: any) {
@@ -356,7 +356,7 @@ export function createWorksheetCycle(sources: any) {
     .select(CREATE_WORKSHEET)
     .thru(flatCatch)
 
-  const reaction$: Stream<InsertCellResult> = resp$
+  const reaction$: Stream<Action> = resp$
     .flatMap(resp => {
       // TODO map errors
       if (!isOK(resp))
@@ -367,15 +367,37 @@ export function createWorksheetCycle(sources: any) {
 
       const bookId = fp.get("request.send.variables.bookId", resp)
 
-      const action: CreateWorksheetAction = createWorksheet(bookId, sheet.name, AsyncStatus.Success)
+      const action: CreateWorksheetAction = createWorksheet(bookId, sheet.name, sheet.uuid, AsyncStatus.Success)
       const tocAction = loadToc()
 
       return most.from([action, tocAction])
     })
 
+  const sheetSuccess = action$
+    .filter(ofType(CREATE_WORKSHEET))
+    .map(act => act as CreateWorksheetAction)
+    .filter(ofStatus(AsyncStatus.Success))
+    .map(it => it.data.sheetId as string)
+
+  const tocSuccess$ = action$
+    .filter(ofType(LOAD_TOC))
+    .map(act => act as LoadTOCAction)
+    .filter(ofStatus(AsyncStatus.Success))
+    .map(act => act.data as LoadTOCActionData)
+
+  const combinedSuccess$ = tocSuccess$.sample((sheetId, toc) => ({sheetId,toc}), sheetSuccess, tocSuccess$)
+    .filter(({sheetId,toc}) =>
+      !!toc.sheets
+        .map((sheet) => sheet.uuid)
+        .find(tocSheet => tocSheet === sheetId)
+      )
+    .map(({sheetId}) => loadWorksheet(sheetId))
+
+  const mergedReactions$ = most.merge(reaction$, combinedSuccess$)
+
   return {
     HTTP: request$,
-    ACTION: reaction$,
+    ACTION: mergedReactions$,
   }
 }
 

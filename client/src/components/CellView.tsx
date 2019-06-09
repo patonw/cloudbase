@@ -10,6 +10,7 @@ import GraphCell from './GraphCell';
 import CodeCell from './CodeCell'
 
 import styles from './CodeCell.module.scss'
+import 'bulma-tooltip'
 
 interface CellViewProps {
   cell: Cell
@@ -56,17 +57,19 @@ class CellView extends React.Component<CellViewProps, {}> {
 
     return <div className={styles.cellContainer}>
       <div className="columns">
-        <div className={`column is-narrow has-text-centered is-flex-touch ${styles.toolbar}`}>
-          <button className={`${styles.runner} button is-block is-small ${result.progress && "is-loading"}`} onClick={scriptHandler}>
+        <div className={`column is-narrow has-text-centered is-flex-mobile ${styles.toolbar}`}>
+          <button className={`${styles.runner} button is-block is-small tooltip ${result.progress && "is-loading"}`}
+              data-tooltip="Run cell"
+              onClick={scriptHandler}>
             <FontAwesomeIcon icon={faPlay} />
           </button>
-          <button className={`button is-block is-small`} onClick={moveUp} disabled={isFirst}>
+          <button className={`button is-block is-small tooltip`} onClick={moveUp} disabled={isFirst} data-tooltip="Move Up">
             <FontAwesomeIcon icon={faArrowCircleUp} />
           </button>
-          <button className={`button is-block is-small`} onClick={moveDown} disabled={isLast}>
+          <button className={`button is-block is-small tooltip`} onClick={moveDown} disabled={isLast} data-tooltip="Move Down">
             <FontAwesomeIcon icon={faArrowCircleDown} />
           </button>
-          <button className={`button is-block is-small ${styles.trash}`} onClick={trashHandler} disabled={locked}>
+          <button className={`button is-block is-small tooltip ${styles.trash}`} onClick={trashHandler} disabled={locked} data-tooltip="Delete">
             <FontAwesomeIcon icon={faTrashAlt} />
           </button>
         </div>

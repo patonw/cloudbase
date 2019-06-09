@@ -17,17 +17,15 @@ object MockWorkbookStore : WorkbookStore {
         }
         """.trimIndent()
 
-    private val defaultWorkbook = Workbook(nextUUID(), "Bookend")
+    private val defaultWorkbook = Workbook(nextUUID(), "Default Workbook")
 
     override val allWorksheets = mutableListOf(
-            Worksheet(nextUUID(), defaultWorkbook.uuid, "foobar", mutableListOf(
+            Worksheet(nextUUID(), defaultWorkbook.uuid, "Random Bars", mutableListOf(
                     CodeCell(nextUUID(), """import kotlin.random.Random"""),
-                    CodeCell(nextUUID(), """data class Foo(val x: Int, val y: Int)"""),
-                    CodeCell(nextUUID(), """Foo(5,10)"""),
                     GraphCell(nextUUID(), """(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }""", vegaSpec)
             )),
 
-            Worksheet(nextUUID(), defaultWorkbook.uuid, "hello", mutableListOf(
+            Worksheet(nextUUID(), defaultWorkbook.uuid, "Hello World", mutableListOf(
                     CodeCell(nextUUID(), """listOf(5, 4, 9, 13)"""),
                     CodeCell(nextUUID(), """data class World(val x: Int, val y: Int)"""),
                     CodeCell(nextUUID(), """World(5,10)""")

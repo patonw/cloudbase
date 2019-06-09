@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { loadWorksheet, createWorksheet } from '../store'
-import { Workbook, Worksheet, UUID, AppState } from '../store'
+import { Workbook, Worksheet, AppState } from '../store'
 import { connect } from 'react-redux';
 
 import WorkbookItem from './WorkbookItem'
@@ -10,7 +10,7 @@ import WorksheetView from './Worksheet'
 interface WorkbookProps {
   workbook: Workbook,
   sheets: Worksheet[],
-  worksheet?: UUID,
+  worksheet?: Worksheet,
   loadWorksheet: typeof loadWorksheet,
   createWorksheet: typeof createWorksheet,
   loading: boolean,
@@ -20,6 +20,7 @@ interface WorkbookViewState {
   showCreateWorksheet: boolean
 }
 
+/*eslint-disable jsx-a11y/anchor-is-valid */
 class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
   constructor(props: any) {
 
@@ -101,30 +102,50 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
       })
     }
 
-    const { worksheet, sheets } = this.props
+    const { workbook, worksheet, sheets } = this.props
+    const scroller = (event: any) => { console.log("Scrolling", event) }
 
     return (
-      <div className="container">
-        <div className="columns">
-          <div className="column is-2">
-            <aside className="menu box">
-              <p className="menu-label">
-                Worksheets
+      <div>
+        <nav className="navbar is-fixed-top has-background-light is-shadowed" role="navigation" aria-label="main navigation">
+          <div className="navbar-brand">
+            <a className="navbar-item" href="https://bulma.io">
+            { workbook.name }
+            </a>
+
+            <a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+              <span aria-hidden="true"></span>
+            </a>
+          </div>
+
+          <div className="navbar-end">
+          </div>
+        </nav>
+        <div onScroll={scroller}>
+          <div className="">
+            <div className="">
+              <aside id="left-menu" className="menu has-background-light is-fullwidth">
+                <p className="menu-label">
+                  Worksheets
             </p>
-              <ul className="menu-list">
-                {
-                  sheets.map((it) => <WorkbookItem key={it.uuid} uuid={it.uuid} />)
-                }
-              </ul>
-              <hr />
-              <button className="button is-fullwidth" onClick={openModal}>New...</button>
-            </aside>
+                <ul className="menu-list" onScroll={scroller}>
+                  {
+                    sheets.map((it) => <WorkbookItem key={it.uuid} uuid={it.uuid} />)
+                  }
+                </ul>
+                <hr />
+                <button className="button is-fullwidth" onClick={openModal}>New...</button>
+              </aside>
+            </div>
+            <div id="content" className="container" onScroll={scroller}>
+              {this.renderNameModal()}
+              {worksheet && <WorksheetView uuid={worksheet.uuid} />}
+            </div>
           </div>
-          <div className="column">
-            {this.renderNameModal()}
-            {worksheet && <WorksheetView uuid={worksheet} />}
-          </div>
-        </div>
+        </div >
+
       </div>
     )
   }
@@ -136,12 +157,15 @@ function mapState(state: AppState, ownProps: any) {
   const sheets = workbook.sheets.map((it) => state.worksheets[it])
   const loading = false
 
+  const sheetId = state.view.worksheet
+  const worksheet = sheetId ? state.worksheets[sheetId] : undefined
+
   return ({
     uuid,
     workbook,
     sheets,
     loading,
-    worksheet: state.view.worksheet,
+    worksheet,
   })
 }
 
