@@ -5,15 +5,18 @@ import graphql.*
 import graphql.execution.DataFetcherExceptionHandler
 import graphql.execution.DataFetcherExceptionHandlerParameters
 import graphql.execution.DataFetcherExceptionHandlerResult
-import graphql.language.SourceLocation
 import graphql.schema.idl.SchemaParser
 import java.lang.RuntimeException
 
 interface WorkbookStore {
     val allWorkbooks: MutableList<Workbook>
     val allProcesses: MutableList<SheetContext>
+    val allWorksheets: MutableList<Worksheet>
 
     fun <T> transaction(block: WorkbookStore.() -> T): T
+
+    val Workbook.sheets
+        get() = allWorksheets.filter { it.bookId == this.uuid }
 }
 
 class CustomErrorHandler : DataFetcherExceptionHandler {
@@ -26,7 +29,7 @@ class CustomErrorHandler : DataFetcherExceptionHandler {
             }
 }
 
-class InvalidUUID(val msg: String): RuntimeException(msg)
+class InvalidUUID(val msg: String) : RuntimeException(msg)
 
 fun WorkbookStore.engine(): GraphQL {
     val registry = SchemaParser().parse(WorkbookGraphQLSchema)
@@ -48,7 +51,7 @@ fun WorkbookStore.engine(): GraphQL {
                 val sheetId = env.getArgument<String>("sheetId")
                 allWorkbooks
                         .flatMap { it.sheets }
-                        .find { it.uuid == sheetId}
+                        .find { it.uuid == sheetId }
             }
         }
 
@@ -57,7 +60,7 @@ fun WorkbookStore.engine(): GraphQL {
                 val bookId = env.getArgument<String>("workbookId")
                 val name = env.getArgument<String>("name")
                 transaction {
-                    val book = allWorkbooks.find { it.uuid == bookId}
+                    val book = allWorkbooks.find { it.uuid == bookId }
                             ?: throw InvalidUUID("Workbook $bookId does not exist")
 
                     // TODO retry until unique
@@ -66,8 +69,8 @@ fun WorkbookStore.engine(): GraphQL {
                     val prefix = uuid.take(5)
 
                     val autoName = if (nameExists) "$name ($prefix)" else name
-                    val sheet = Worksheet(uuid, autoName, mutableListOf())
-                    book.sheets.add(sheet)
+                    val sheet = Worksheet(uuid, bookId, autoName, mutableListOf())
+                    allWorksheets.add(sheet)
 
                     //allProcesses.add(SheetContext(nextUUID(), sheet))
                     sheet
@@ -187,7 +190,7 @@ fun WorkbookStore.engine(): GraphQL {
 
                     sheet?.cells?.toSet()
 
-                    val valid = order?.containsAll(sheet?.cells?.map {it.uuid}.orEmpty())
+                    val valid = order?.containsAll(sheet?.cells?.map { it.uuid }.orEmpty())
 
                     if (valid != null && valid) {
                         val cells = sheet!!.cells.associateBy { it.uuid }
@@ -201,9 +204,17 @@ fun WorkbookStore.engine(): GraphQL {
             }
         }
 
+        type("Workbook") { wire ->
+            wire.dataFetcher("sheets") { env ->
+                val book = env.getSource<Workbook>()
+                book.sheets
+            }
+
+        }
+
         type("Cell") {
             it.typeResolver { env ->
-                when(env.getObject<Cell>()) {
+                when (env.getObject<Cell>()) {
                     is GraphCell -> env.schema.getObjectType("GraphCell")
                     is CodeCell -> env.schema.getObjectType("CodeCell")
                 }

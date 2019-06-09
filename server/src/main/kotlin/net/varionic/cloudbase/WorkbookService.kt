@@ -8,12 +8,26 @@ open class WorkbookService(val store: WorkbookStore): GraphQLService {
 
 fun nextUUID() = UUID.randomUUID().toString()
 
-data class Workbook(val uuid: String, val name: String, val sheets: MutableList<Worksheet>)
-data class Worksheet(val uuid: String, val name: String, val cells: MutableList<Cell>)
+data class Workbook(var uuid: String, var name: String) {
+    constructor(): this("","")
+}
 
-sealed class Cell(val uuid: String, var script: String)
-class CodeCell(uuid: String, script: String): Cell(uuid, script)
-class GraphCell(uuid: String, script: String, var spec: String) : Cell(uuid, script)
+data class Worksheet(var uuid: String, var bookId: String?, var name: String, var cells: MutableList<Cell>) {
+    constructor(uuid: String, name: String, cells: MutableList<Cell>): this(uuid, null, name, cells)
+    constructor(): this("","","", mutableListOf())
+}
+
+sealed class Cell(var uuid: String, var script: String) {
+    constructor(): this("","")
+}
+
+class CodeCell(uuid: String, script: String): Cell(uuid, script) {
+    constructor(): this("","")
+}
+
+class GraphCell(uuid: String, script: String, var spec: String) : Cell(uuid, script) {
+    constructor(): this("","","")
+}
 
 data class CellResult(val uuid: String, val cell: Cell, val data: Any, val error: Throwable? = null)
 
@@ -51,6 +65,7 @@ val WorkbookGraphQLSchema = """
 
     type Worksheet {
         uuid: ID!
+        bookId: ID!
         name: String!
         cells: [Cell!]!
     }

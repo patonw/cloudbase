@@ -106,7 +106,7 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
     return (
       <div className="container">
         <div className="columns">
-          <div className="column is-narrow">
+          <div className="column is-2">
             <aside className="menu box">
               <p className="menu-label">
                 Worksheets
@@ -117,7 +117,7 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
                 }
               </ul>
               <hr />
-              <button className="button" onClick={openModal}>New...</button>
+              <button className="button is-fullwidth" onClick={openModal}>New...</button>
             </aside>
           </div>
           <div className="column">

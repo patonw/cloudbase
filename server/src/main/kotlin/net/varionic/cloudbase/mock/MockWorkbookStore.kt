@@ -2,7 +2,7 @@ package net.varionic.cloudbase.mock
 
 import net.varionic.cloudbase.*
 
-class MockWorkbookStore : WorkbookStore {
+object MockWorkbookStore : WorkbookStore {
     override fun <T> transaction(block: WorkbookStore.() -> T): T = block()
 
     private val vegaSpec = """
@@ -17,22 +17,25 @@ class MockWorkbookStore : WorkbookStore {
         }
         """.trimIndent()
 
-    override val allWorkbooks = mutableListOf(
-        Workbook(nextUUID(), "Bookish", mutableListOf(
-            Worksheet(nextUUID(), "foobar", mutableListOf(
-                CodeCell(nextUUID(), """import kotlin.random.Random"""),
-                CodeCell(nextUUID(), """data class Foo(val x: Int, val y: Int)"""),
-                CodeCell(nextUUID(), """Foo(5,10)"""),
-                CodeCell(nextUUID(), """import kotlin.random.Random"""),
-                GraphCell(nextUUID(), """(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }""", vegaSpec)
+    private val defaultWorkbook = Workbook(nextUUID(), "Bookend")
+
+    override val allWorksheets = mutableListOf(
+            Worksheet(nextUUID(), defaultWorkbook.uuid, "foobar", mutableListOf(
+                    CodeCell(nextUUID(), """import kotlin.random.Random"""),
+                    CodeCell(nextUUID(), """data class Foo(val x: Int, val y: Int)"""),
+                    CodeCell(nextUUID(), """Foo(5,10)"""),
+                    GraphCell(nextUUID(), """(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }""", vegaSpec)
             )),
 
-            Worksheet(nextUUID(), "hello", mutableListOf(
-                CodeCell(nextUUID(), """listOf(5, 4, 9, 13)"""),
-                CodeCell(nextUUID(), """data class World(val x: Int, val y: Int)"""),
-                CodeCell(nextUUID(), """World(5,10)""")
+            Worksheet(nextUUID(), defaultWorkbook.uuid, "hello", mutableListOf(
+                    CodeCell(nextUUID(), """listOf(5, 4, 9, 13)"""),
+                    CodeCell(nextUUID(), """data class World(val x: Int, val y: Int)"""),
+                    CodeCell(nextUUID(), """World(5,10)""")
             ))
-        ))
+    )
+
+    override val allWorkbooks = mutableListOf(
+            defaultWorkbook
     )
 
     override val allProcesses = allWorkbooks.flatMap { it.sheets }.map {

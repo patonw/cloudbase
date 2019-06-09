@@ -16,14 +16,22 @@ import io.ktor.server.netty.Netty
 import net.varionic.cloudbase.mock.MockWorkbookStore
 import org.koin.dsl.module
 import org.koin.ktor.ext.Koin
+import java.io.File
 
 fun Application.main() {
     val myModule = module {
-        single { MockWorkbookStore() as WorkbookStore}
+        single {
+            when (getProperty("STORAGE_BACKEND", "JSON")) {
+                "MOCK" -> MockWorkbookStore
+                else -> JsonStore(File(getProperty("JSON_STORE", "cloudbase.json")))
+            }
+        }
+
         single { WorkbookService(get()) as GraphQLService }
     }
 
     install(Koin) {
+        environmentProperties()
         modules(myModule)
     }
 
