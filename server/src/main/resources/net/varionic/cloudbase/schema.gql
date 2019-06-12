@@ -1,0 +1,72 @@
+type Query {
+    worksheet(sheetId: ID!): Worksheet
+    allWorkbooks: [Workbook!]!
+    allProcesses: [Process!]!
+}
+
+type Mutation {
+    createWorksheet(workbookId: ID!, name: String = "Untitled"): Worksheet!
+    createProcess(sheetId: ID!): Process!
+    executeCell(processId: ID!, cellId: ID!): CellResult
+    setCellScript(cellId: ID!, script: String!): Cell
+    setGraphSpec(cellId: ID!, spec: String!): GraphCell
+    insertCell(sheetId: ID!, index: Int = -1, cellType: CellType = CODE): InsertCellOutput
+    reorderWorksheet(sheetId: ID!, cells: [ID!]!): Worksheet
+    deleteCell(sheetId: ID!, cellId: ID!): DeleteCellOutput
+}
+
+enum CellType {
+    CODE
+    GRAPH
+}
+
+type Workbook {
+    uuid: ID!
+    name: String!
+    sheets: [Worksheet!]!
+}
+
+type Worksheet {
+    uuid: ID!
+    bookId: ID!
+    name: String!
+    cells: [Cell!]!
+}
+
+interface Cell {
+    uuid: ID!
+    script: String!
+}
+
+type CodeCell implements Cell {
+    uuid: ID!
+    script: String!
+}
+
+type GraphCell implements Cell {
+    uuid: ID!
+    script: String!
+    spec: String!
+}
+
+type CellResult {
+    cell: Cell!
+    data: String!
+    json: String!
+}
+
+type Process {
+    uuid: ID!
+    sheet: Worksheet!
+    results: [CellResult!]!
+}
+
+type DeleteCellOutput {
+    sheet: Worksheet!
+    cell: Cell!
+}
+
+type InsertCellOutput {
+    sheet: Worksheet!
+    cell: Cell!
+}

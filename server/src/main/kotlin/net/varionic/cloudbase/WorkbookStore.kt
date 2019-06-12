@@ -12,11 +12,15 @@ interface WorkbookStore {
     val allWorkbooks: MutableList<Workbook>
     val allProcesses: MutableList<SheetContext>
     val allWorksheets: MutableList<Worksheet>
+    val sheets: WorksheetRegistry
+    val cells: CellRegistry
 
     fun <T> transaction(block: WorkbookStore.() -> T): T
 
     val Workbook.sheets
         get() = allWorksheets.filter { it.bookId == this.uuid }
+
+    fun Worksheet.edit(block: WorksheetEditor.() -> Unit) = sheets.edit(this, block)
 }
 
 class CustomErrorHandler : DataFetcherExceptionHandler {
@@ -30,9 +34,10 @@ class CustomErrorHandler : DataFetcherExceptionHandler {
 }
 
 class InvalidUUID(val msg: String) : RuntimeException(msg)
+class DetachedEntity(val msg: String): RuntimeException(msg)
 
-fun WorkbookStore.engine(): GraphQL {
-    val registry = SchemaParser().parse(WorkbookGraphQLSchema)
+fun WorkbookStore.engine(schema: String): GraphQL {
+    val registry = SchemaParser().parse(schema)
     val gson = Gson()
 
     // Bind lambdas to schema operations
@@ -110,13 +115,20 @@ fun WorkbookStore.engine(): GraphQL {
                 val script = args["script"] as String
 
                 transaction {
-                    val cell = allWorkbooks
-                            .flatMap { it.sheets }
-                            .flatMap { it.cells }
-                            .find { it.uuid == cellId }
-                    cell ?: throw InvalidUUID("Cell $cellId does not exist")
-                    cell.script = script
-                    cell
+                    val cell = cells.fetch(cellId) ?: throw InvalidUUID("Cell $cellId does not exist")
+                    val owner = sheets.owner(cell) ?: throw DetachedEntity("Cell $cellId is not attached to a worksheet")
+
+                    if (cell !is ExecutableCell)
+                        throw InvalidUUID("Cell $cellId is not a code cell")
+
+                    lateinit var result: Cell
+                    owner.edit {
+                        result = cell.edit {
+                            this.script = script
+                        }
+                    }
+
+                    result
                 }
             }
 
@@ -126,16 +138,20 @@ fun WorkbookStore.engine(): GraphQL {
                 val spec = args["spec"] as String
 
                 transaction {
-                    val cell = allWorkbooks
-                            .flatMap { it.sheets }
-                            .flatMap { it.cells }
-                            .find { it.uuid == cellId }
+                    val cell = cells.fetch(cellId) ?: throw InvalidUUID("Cell $cellId does not exist")
+                    val owner = sheets.owner(cell) ?: throw DetachedEntity("Cell $cellId is not attached to a worksheet")
 
-                    if (cell is GraphCell) {
-                        cell.spec = spec
+                    if (cell !is GraphCell)
+                        throw InvalidUUID("Cell $cellId is not a graph cell")
+
+                    lateinit var result: Cell
+                    owner.edit {
+                        result = cell.edit {
+                            this.spec = spec
+                        }
                     }
 
-                    cell
+                    result
                 }
             }
 
@@ -145,17 +161,15 @@ fun WorkbookStore.engine(): GraphQL {
                 val cellType = env.getArgument<String?>("cellType")
 
                 transaction {
-                    val sheet = allWorkbooks
-                            .flatMap { it.sheets }
-                            .find { it.uuid == sheetId }
+                    val sheet = sheets.fetch(sheetId) ?: throw InvalidUUID("Worksheet $sheetId dose not exists")
 
                     val cell = when (cellType) {
                         "GRAPH" -> GraphCell(nextUUID(), "", "")
                         else -> CodeCell(nextUUID(), "")
                     }
 
-                    sheet?.cells?.add(cell)
-                    sheet?.let { InsertCellOutput(sheet, cell) }
+                    sheet.cells.add(cell)
+                    InsertCellOutput(sheet, cell)
                 }
             }
 
@@ -216,6 +230,7 @@ fun WorkbookStore.engine(): GraphQL {
                 when (env.getObject<Cell>()) {
                     is GraphCell -> env.schema.getObjectType("GraphCell")
                     is CodeCell -> env.schema.getObjectType("CodeCell")
+                    else -> error("NO GOOD!")
                 }
             }
         }

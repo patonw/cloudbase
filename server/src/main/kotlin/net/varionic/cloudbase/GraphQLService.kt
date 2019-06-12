@@ -19,6 +19,7 @@ import org.koin.ktor.ext.inject
 
 interface GraphQLService {
     val engine: GraphQL
+    val schema: String
     fun execute(req: GraphQLRequest) = engine.execute(req)
 }
 

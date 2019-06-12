@@ -65,6 +65,9 @@ class JsonStore(val path: File): WorkbookStore {
         backend.worksheets.toMutableList()
     }
 
+    override val cells = CellRegistry(this)
+    override val sheets = WorksheetRegistry(this)
+
     override fun <T> transaction(block: WorkbookStore.() -> T): T {
         return path.bufferedWriter().use {
             val result = block()

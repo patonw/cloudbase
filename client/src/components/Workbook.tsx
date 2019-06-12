@@ -103,7 +103,6 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
     }
 
     const { workbook, worksheet, sheets } = this.props
-    const scroller = (event: any) => { console.log("Scrolling", event) }
 
     return (
       <div>
@@ -123,14 +122,14 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
           <div className="navbar-end">
           </div>
         </nav>
-        <div onScroll={scroller}>
+        <div>
           <div className="">
             <div className="">
               <aside id="left-menu" className="menu has-background-light is-fullwidth">
                 <p className="menu-label">
                   Worksheets
             </p>
-                <ul className="menu-list" onScroll={scroller}>
+                <ul className="menu-list">
                   {
                     sheets.map((it) => <WorkbookItem key={it.uuid} uuid={it.uuid} />)
                   }
@@ -139,7 +138,7 @@ class WorkbookView extends React.Component<WorkbookProps, WorkbookViewState> {
                 <button className="button is-fullwidth" onClick={openModal}>New...</button>
               </aside>
             </div>
-            <div id="content" className="container" onScroll={scroller}>
+            <div id="content" className="container">
               {this.renderNameModal()}
               {worksheet && <WorksheetView uuid={worksheet.uuid} />}
             </div>

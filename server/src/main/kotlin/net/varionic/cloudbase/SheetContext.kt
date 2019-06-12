@@ -9,8 +9,8 @@ data class SheetContext(val uuid: String, val sheet: Worksheet) {
     val results
         get() = resultMap.values
 
-    fun executeCell(cell: Cell): CellResult? {
-        val result = engine.eval(cell.script) ?: Unit
+    fun executeCell(cell: ExecutableCell): CellResult? {
+        val result = cell.execute(this)?: Unit
         val cr = CellResult(nextUUID(), cell, result)
         resultMap[cell.uuid] = cr
 
@@ -18,7 +18,10 @@ data class SheetContext(val uuid: String, val sheet: Worksheet) {
     }
 
     fun executeCell(cellId: String): CellResult? {
-        val cell = sheet.cells.find { it.uuid == cellId } ?: return null
+        val cell = sheet.cells.find { it.uuid == cellId }
+                as? ExecutableCell
+                ?: error("Cell $cellId is not executable")
+
         return executeCell(cell)
     }
 }

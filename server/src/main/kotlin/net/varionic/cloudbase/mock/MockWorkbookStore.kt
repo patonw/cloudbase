@@ -3,7 +3,7 @@ package net.varionic.cloudbase.mock
 import net.varionic.cloudbase.*
 
 object MockWorkbookStore : WorkbookStore {
-    override fun <T> transaction(block: WorkbookStore.() -> T): T = block()
+    override fun <T> transaction(block: WorkbookStore.() -> T): T = run(block)
 
     private val vegaSpec = """
         {
@@ -40,4 +40,7 @@ object MockWorkbookStore : WorkbookStore {
         SheetContext(nextUUID(), it)
     }.toMutableList()
 
+
+    override val cells = CellRegistry(this)
+    override val sheets = WorksheetRegistry(this)
 }
