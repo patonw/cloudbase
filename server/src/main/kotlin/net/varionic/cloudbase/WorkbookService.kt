@@ -1,5 +1,6 @@
 package net.varionic.cloudbase
 
+import net.varionic.cloudbase.routing.GraphQLService
 import java.util.*
 
 open class WorkbookService(val store: WorkbookStore): GraphQLService {

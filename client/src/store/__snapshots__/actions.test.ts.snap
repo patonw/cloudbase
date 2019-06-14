@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`clears error messages 1`] = `
+Object {
+  "type": "CLEAR_ERROR",
+}
+`;
+
+exports[`creates a new worksheet 1`] = `
+Object {
+  "data": Object {
+    "bookId": "theWorkbook",
+    "name": "Worksheet Name",
+    "sheetId": undefined,
+  },
+  "status": 1,
+  "type": "CREATE_WORKSHEET",
+}
+`;
+
+exports[`creates a new worksheet 2`] = `
+Object {
+  "data": Object {
+    "bookId": "theWorkbook",
+    "name": "Worksheet Name",
+    "sheetId": "theWorksheetId",
+  },
+  "status": 2,
+  "type": "CREATE_WORKSHEET",
+}
+`;
+
+exports[`loads the table of contents 1`] = `
+Object {
+  "status": 1,
+  "type": "LOAD_TOC",
+}
+`;
+
+exports[`loads the table of contents 2`] = `
+Object {
+  "status": 2,
+  "type": "LOAD_TOC",
+}
+`;

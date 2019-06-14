@@ -3,8 +3,32 @@
  */
 package net.varionic.cloudbase
 
-import kotlin.test.Test
-import kotlin.test.assertNotNull
+import kotlin.test.*
 
-class AppTest {
+import com.karumi.kotlinsnapshot.matchWithSnapshot
+import net.varionic.cloudbase.routing.GraphQLService
+import org.koin.test.inject
+import org.koin.test.mock.declareMock
+import org.mockito.BDDMockito.given
+
+class AppTest: TestBase {
+    @Test
+    fun testQueryAllWorkbooks() {
+        declareMock<WorkbookStore> {
+            given(this.allWorkbooks).willReturn(mutableListOf(
+                    Workbook("theBookId", "The Workbook Name")
+            ))
+        }
+
+        val service: GraphQLService by inject()
+        val result = service.engine.execute("""
+            query {
+                allWorkbooks {
+                    uuid
+                    name
+                }
+            }
+        """.trimIndent())
+        result.toSpecification().matchWithSnapshot()
+    }
 }

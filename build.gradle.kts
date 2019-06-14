@@ -12,3 +12,12 @@ tasks.register<Exec>("webpack") {
     inputs.dir("client/src")
     outputs.dir("client/build")
 }
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.karumi.kotlinsnapshot:plugin:2.1.0")
+    }
+}

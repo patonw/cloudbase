@@ -1,0 +1,13 @@
+{
+  "__class__": "LinkedHashMap",
+  "data": {
+    "__class__": "LinkedHashMap",
+    "allWorkbooks": [
+      {
+        "__class__": "LinkedHashMap",
+        "uuid": "theBookId",
+        "name": "The Workbook Name"
+      }
+    ]
+  }
+}

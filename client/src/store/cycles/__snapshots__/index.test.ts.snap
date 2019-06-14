@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`loadWorksheetCycle handles errors by dispatching async failure 1`] = `
+Array [
+  Array [
+    "LOAD_WORKSHEET",
+  ],
+]
+`;
+
+exports[`loadWorksheetCycle handles errors by dispatching async failure 2`] = `
+Array [
+  Object {
+    "error": Object {
+      "response": Object {
+        "request": Object {
+          "uuid": "badUUID",
+        },
+      },
+    },
+    "status": 3,
+    "type": "LOAD_WORKSHEET",
+    "uuid": "badUUID",
+  },
+]
+`;
+
+exports[`loadWorksheetCycle issues a worksheet request from a LOAD_WORKSHEET action 1`] = `
+Object {
+  "category": "LOAD_WORKSHEET",
+  "method": "POST",
+  "ok": [Function],
+  "send": Object {
+    "query": "
+  query loadSheet($sheetId: ID!) {
+    worksheet(sheetId: $sheetId) {
+      uuid
+      name
+      cells {
+        __typename
+        uuid
+        script
+        ... on GraphCell {
+          spec
+        }
+      }
+    }
+  }",
+    "variables": Object {
+      "sheetId": "theWorksheetId",
+    },
+  },
+  "url": "/graphql",
+  "uuid": "theWorksheetId",
+}
+`;
+
+exports[`loadWorksheetCycle processes GraphQL response 1`] = `
+Array [
+  Array [
+    "LOAD_WORKSHEET",
+  ],
+]
+`;
+
+exports[`loadWorksheetCycle processes GraphQL response 2`] = `
+Array [
+  Object {
+    "data": Object {
+      "uuid": "theWorksheetId",
+    },
+    "status": 2,
+    "type": "LOAD_WORKSHEET",
+    "uuid": "theWorksheetId",
+  },
+]
+`;

@@ -1,7 +1,7 @@
-package net.varionic.cloudbase
+package net.varionic.cloudbase.backend
 
 import com.google.gson.*
-import net.varionic.cloudbase.mock.MockWorkbookStore
+import net.varionic.cloudbase.*
 import java.io.File
 import java.lang.reflect.Type
 
@@ -34,9 +34,7 @@ object CellDeserializer: JsonDeserializer<Cell> {
 }
 
 class JsonStore(val path: File): WorkbookStore {
-    data class Backend(var workbooks: List<Workbook>, var worksheets: List<Worksheet>) {
-        constructor(): this(emptyList(), emptyList())
-    }
+    data class Backend(var workbooks: List<Workbook>, var worksheets: List<Worksheet>)
 
     private val gson = with (GsonBuilder()) {
         registerTypeAdapter(Cell::class.java, CellSerializer)

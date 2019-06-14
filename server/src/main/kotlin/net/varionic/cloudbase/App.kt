@@ -13,7 +13,11 @@ import io.ktor.http.content.static
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import net.varionic.cloudbase.mock.MockWorkbookStore
+import net.varionic.cloudbase.backend.JsonStore
+import net.varionic.cloudbase.backend.MockWorkbookStore
+import net.varionic.cloudbase.routing.GraphQLService
+import net.varionic.cloudbase.routing.graphiql
+import net.varionic.cloudbase.routing.graphql
 import org.koin.dsl.module
 import org.koin.ktor.ext.Koin
 import java.io.File

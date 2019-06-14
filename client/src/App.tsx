@@ -12,7 +12,7 @@ export interface AppProps {
   errMsg?: string
 }
 
-class App extends React.Component<AppProps, {}>{
+export class App extends React.Component<AppProps, {}>{
   renderError() {
     const { errMsg, clearError } = this.props
     if (!errMsg) {

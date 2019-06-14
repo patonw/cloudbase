@@ -111,7 +111,7 @@ function processCycle(sources: any) {
   }
 }
 
-function loadWorksheetCycle(sources: any) {
+export function loadWorksheetCycle(sources: any) {
   const request$: Stream<RequestInput> = sources.ACTION
     .filter(ofType(LOAD_WORKSHEET))
     .filter(ofStatus(AsyncStatus.Pending))

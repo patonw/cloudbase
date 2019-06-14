@@ -1,0 +1,251 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`creates a new process 1`] = `
+Object {
+  "query": "
+      mutation CreateProcess($sheetId: ID!) {
+        createProcess(sheetId: $sheetId) {
+          uuid
+          sheet {
+            uuid
+          }
+        }
+      }
+    ",
+  "variables": Object {
+    "sheetId": "theWorksheet",
+  },
+}
+`;
+
+exports[`creates a new worksheet 1`] = `
+Object {
+  "query": "
+      mutation CreateWorksheet($bookId: ID!, $name: String) {
+        createWorksheet(workbookId: $bookId, name: $name) {
+          uuid
+          name
+          cells {
+            __typename
+            uuid
+            script
+            ... on GraphCell {
+              spec
+            }
+          }
+        }
+      }
+    ",
+  "variables": Object {
+    "bookId": "theWorkbook",
+    "name": "Hello Worksheet",
+  },
+}
+`;
+
+exports[`deletes a cell 1`] = `
+Object {
+  "query": "
+      mutation Apoptosis($sheetId: ID!, $cellId: ID!) {
+        deleteCell(sheetId: $sheetId, cellId: $cellId) {
+          sheet {
+            uuid
+          }
+          cell {
+            uuid
+          }
+        }
+      }
+    ",
+  "variables": Object {
+    "cellId": "theCellID",
+    "sheetId": "theSheetID",
+  },
+}
+`;
+
+exports[`generates a TOC query 1`] = `
+Object {
+  "query": "
+  query loadTOC {
+    allWorkbooks {
+      uuid
+      name
+      sheets {
+        uuid
+        name
+      }
+    }
+
+    allProcesses {
+      uuid
+      sheet {
+        uuid
+      }
+    }
+  }
+",
+}
+`;
+
+exports[`generates a combined update and execute mutation for a code cell 1`] = `
+Object {
+  "query": "
+    mutation updateAndExecute($processId:ID!, $cellId:ID! , $script: String!) {
+      
+      setCellScript(cellId: $cellId, script: $script) {
+        uuid
+      }
+      executeCell(processId: $processId, cellId: $cellId) {
+        cell {
+          uuid
+        }
+        data
+        json
+      }
+    }",
+  "variables": Object {
+    "cellId": "theCellId",
+    "processId": "thePID",
+    "script": "1+1",
+  },
+}
+`;
+
+exports[`generates a combined update and execute mutation for a graph cell 1`] = `
+Object {
+  "query": "
+    mutation updateAndExecute($processId:ID!, $cellId:ID! , $script: String!, $spec: String!) {
+      
+      setCellScript(cellId: $cellId, script: $script) {
+        uuid
+      }
+      setGraphSpec(cellId: $cellId, spec: $spec) {
+        uuid
+      }
+      executeCell(processId: $processId, cellId: $cellId) {
+        cell {
+          uuid
+        }
+        data
+        json
+      }
+    }",
+  "variables": Object {
+    "cellId": "theCellId",
+    "processId": "thePID",
+    "script": "1+1",
+    "spec": "
+    {
+      \\"$schema\\": \\"https://vega.github.io/schema/vega-lite/v3.json\\",
+      \\"description\\": \\"A simple bar chart with embedded data.\\",
+      \\"mark\\": \\"bar\\",
+      \\"encoding\\": {
+        \\"x\\": {\\"field\\": \\"first\\", \\"type\\": \\"ordinal\\"},
+        \\"y\\": {\\"field\\": \\"second\\", \\"type\\": \\"quantitative\\"}
+      }
+    }",
+  },
+}
+`;
+
+exports[`generates a worksheet query 1`] = `
+Object {
+  "query": "
+  query loadSheet($sheetId: ID!) {
+    worksheet(sheetId: $sheetId) {
+      uuid
+      name
+      cells {
+        __typename
+        uuid
+        script
+        ... on GraphCell {
+          spec
+        }
+      }
+    }
+  }",
+  "variables": Object {
+    "sheetId": "helloWorld",
+  },
+}
+`;
+
+exports[`inserts a code cell 1`] = `
+Object {
+  "query": "
+      mutation InsertCell($sheetId: ID!, $index: Int, $cellType: CellType) {
+        insertCell(sheetId: $sheetId, index: $index, cellType: $cellType) {
+          sheet {
+            uuid
+            cells {
+              uuid
+            }
+          }
+          cell {
+            __typename
+            uuid
+            script
+            ... on GraphCell {
+              spec
+            }
+          }
+        }
+      }
+    ",
+  "variables": Object {
+    "cellType": "CODE",
+    "sheetId": "theCellID",
+  },
+}
+`;
+
+exports[`inserts a graph cell 1`] = `
+Object {
+  "query": "
+      mutation InsertCell($sheetId: ID!, $index: Int, $cellType: CellType) {
+        insertCell(sheetId: $sheetId, index: $index, cellType: $cellType) {
+          sheet {
+            uuid
+            cells {
+              uuid
+            }
+          }
+          cell {
+            __typename
+            uuid
+            script
+            ... on GraphCell {
+              spec
+            }
+          }
+        }
+      }
+    ",
+  "variables": Object {
+    "cellType": "GRAPH",
+    "index": 5,
+    "sheetId": "theCellID",
+  },
+}
+`;
+
+exports[`only executes a clean cell without updating 1`] = `
+Object {
+  "query": "
+  mutation justExecute($processId:ID!, $cellId:ID!) {
+    executeCell(processId: $processId, cellId: $cellId) {
+      cell {
+        uuid
+      }
+      data
+      json
+    }
+  }",
+  "variables": Object {
+    "cellId": "theCellID",
+    "processId": "thePID",
+  },
+}
+`;

@@ -135,8 +135,7 @@ export const updateAndExecute = (processId: UUID, cellId: UUID, dirty: Cell) => 
     updates += `
       setGraphSpec(cellId: $cellId, spec: $spec) {
         uuid
-      }
-    `
+      }`
     args += ', $spec: String!'
     variables.spec = dirty.spec
   }

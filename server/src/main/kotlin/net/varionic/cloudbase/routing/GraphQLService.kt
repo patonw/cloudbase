@@ -1,4 +1,4 @@
-package net.varionic.cloudbase
+package net.varionic.cloudbase.routing
 
 import graphql.ExecutionInput
 import graphql.GraphQL

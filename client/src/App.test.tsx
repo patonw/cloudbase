@@ -1,9 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
+import { shallow } from 'enzyme'
+
+import ConnectedApp, { App } from './App';
+import * as act from './store/actions'
 
 it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<App />, div);
-  ReactDOM.unmountComponentAtNode(div);
+  const clearError = jest.fn(() => act.clearError())
+  const app = shallow(<App uuid={"theUUID"} clearError={clearError}/>);
+  expect(app).toMatchSnapshot()
 });
