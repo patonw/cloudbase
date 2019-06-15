@@ -1,0 +1,22 @@
+{
+  "uuid": "firstWorksheetId",
+  "bookId": "defaultWorkbookId",
+  "name": "Random Bars",
+  "cells": [
+    {
+      "nucleus": {
+        "uuid": "codeCell_00",
+        "revision": 0
+      },
+      "script": "import kotlin.random.Random"
+    },
+    {
+      "nucleus": {
+        "uuid": "graphCell_01",
+        "revision": 0
+      },
+      "script": "(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }",
+      "spec": "{\n  \"$schema\": \"https://vega.github.io/schema/vega-lite/v3.json\",\n  \"description\": \"A simple bar chart with embedded data.\",\n  \"mark\": \"bar\",\n  \"encoding\": {\n    \"x\": {\"field\": \"first\", \"type\": \"ordinal\"},\n    \"y\": {\"field\": \"second\", \"type\": \"quantitative\"}\n  }\n}"
+    }
+  ]
+}

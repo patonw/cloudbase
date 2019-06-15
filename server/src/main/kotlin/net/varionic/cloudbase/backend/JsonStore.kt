@@ -35,8 +35,9 @@ object CellDeserializer: JsonDeserializer<Cell> {
 
 class JsonStore(val path: File): WorkbookStore {
     data class Backend(var workbooks: List<Workbook>, var worksheets: List<Worksheet>)
+    override val idGen = object: IDGenerator {}
 
-    private val gson = with (GsonBuilder()) {
+    internal val gson: Gson = with (GsonBuilder()) {
         registerTypeAdapter(Cell::class.java, CellSerializer)
         registerTypeAdapter(Cell::class.java, CellDeserializer)
         setPrettyPrinting()
@@ -49,8 +50,10 @@ class JsonStore(val path: File): WorkbookStore {
                 gson.fromJson(it, Backend::class.java)
             }
         }
-        else
-            Backend(MockWorkbookStore.allWorkbooks, MockWorkbookStore.allWorksheets)
+        else {
+            val template = InMemoryStore()
+            Backend(template.allWorkbooks, template.allWorksheets)
+        }
     }
 
     override val allWorkbooks: MutableList<Workbook> by lazy {
@@ -62,9 +65,6 @@ class JsonStore(val path: File): WorkbookStore {
     override val allWorksheets: MutableList<Worksheet> by lazy {
         backend.worksheets.toMutableList()
     }
-
-    override val cells = CellRegistry(this)
-    override val sheets = WorksheetRegistry(this)
 
     override fun <T> transaction(block: WorkbookStore.() -> T): T {
         return path.bufferedWriter().use {

@@ -13,6 +13,7 @@ import io.ktor.http.content.static
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import net.varionic.cloudbase.backend.InMemoryStore
 import net.varionic.cloudbase.backend.JsonStore
 import net.varionic.cloudbase.backend.MockWorkbookStore
 import net.varionic.cloudbase.routing.GraphQLService
@@ -24,9 +25,11 @@ import java.io.File
 
 fun Application.main() {
     val myModule = module {
+        single { object: IDGenerator {} as IDGenerator }
         single {
             when (getProperty("STORAGE_BACKEND", "JSON")) {
-                "MOCK" -> MockWorkbookStore
+                "MOCK" -> MockWorkbookStore(get())
+                "MEM" -> InMemoryStore()
                 else -> JsonStore(File(getProperty("JSON_STORE", "cloudbase.json")))
             }
         }

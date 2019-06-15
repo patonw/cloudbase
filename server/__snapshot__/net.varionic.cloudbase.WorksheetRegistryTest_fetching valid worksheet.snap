@@ -1,0 +1,28 @@
+{
+  "uuid": "secondWorksheetId",
+  "bookId": "defaultWorkbookId",
+  "name": "Hello World",
+  "cells": [
+    {
+      "nucleus": {
+        "uuid": "codeCell_10",
+        "revision": 0
+      },
+      "script": "listOf(5, 4, 9, 13)"
+    },
+    {
+      "nucleus": {
+        "uuid": "codeCell_11",
+        "revision": 0
+      },
+      "script": "data class World(val x: Int, val y: Int)"
+    },
+    {
+      "nucleus": {
+        "uuid": "codeCell_12",
+        "revision": 0
+      },
+      "script": "World(5,10)"
+    }
+  ]
+}

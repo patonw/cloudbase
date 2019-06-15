@@ -2,8 +2,11 @@ package net.varionic.cloudbase.backend
 
 import net.varionic.cloudbase.*
 
-object MockWorkbookStore : WorkbookStore {
+class MockWorkbookStore(override val idGen: IDGenerator) : WorkbookStore {
     override fun <T> transaction(block: WorkbookStore.() -> T): T = run(block)
+
+    private fun mockCodeCell(uuid: String, script: String) = CodeCell(Nucleus(uuid, 0, null), script)
+    private fun mockGraphCell(uuid: String, script:String, spec: String) = GraphCell(Nucleus(uuid, 0, null), script, spec)
 
     private val vegaSpec = """
         {
@@ -17,18 +20,18 @@ object MockWorkbookStore : WorkbookStore {
         }
         """.trimIndent()
 
-    private val defaultWorkbook = Workbook(nextUUID(), "Default Workbook")
+    private val defaultWorkbook = Workbook("defaultWorkbookId", "Default Workbook")
 
     override val allWorksheets = mutableListOf(
-            Worksheet(nextUUID(), defaultWorkbook.uuid, "Random Bars", mutableListOf(
-                    CodeCell(nextUUID(), """import kotlin.random.Random"""),
-                    GraphCell(nextUUID(), """(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }""", vegaSpec)
+            Worksheet("firstWorksheetId", defaultWorkbook.uuid, "Random Bars", mutableListOf(
+                    mockCodeCell("codeCell_00", """import kotlin.random.Random"""),
+                    mockGraphCell("graphCell_01", """(1..100).map { (it to (Random.nextInt() % 100 + 100) % 100) }""", vegaSpec)
             )),
 
-            Worksheet(nextUUID(), defaultWorkbook.uuid, "Hello World", mutableListOf(
-                    CodeCell(nextUUID(), """listOf(5, 4, 9, 13)"""),
-                    CodeCell(nextUUID(), """data class World(val x: Int, val y: Int)"""),
-                    CodeCell(nextUUID(), """World(5,10)""")
+            Worksheet("secondWorksheetId", defaultWorkbook.uuid, "Hello World", mutableListOf(
+                    mockCodeCell("codeCell_10", """listOf(5, 4, 9, 13)"""),
+                    mockCodeCell("codeCell_11", """data class World(val x: Int, val y: Int)"""),
+                    mockCodeCell("codeCell_12", """World(5,10)""")
             ))
     )
 
@@ -37,10 +40,7 @@ object MockWorkbookStore : WorkbookStore {
     )
 
     override val allProcesses = allWorkbooks.flatMap { it.sheets }.map {
-        SheetContext(nextUUID(), it)
+        SheetContext(nextUUID(), it, idGen)
     }.toMutableList()
 
-
-    override val cells = CellRegistry(this)
-    override val sheets = WorksheetRegistry(this)
 }

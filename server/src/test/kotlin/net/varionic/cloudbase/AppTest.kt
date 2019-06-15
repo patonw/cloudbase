@@ -11,7 +11,7 @@ import org.koin.test.inject
 import org.koin.test.mock.declareMock
 import org.mockito.BDDMockito.given
 
-class AppTest: TestBase {
+class AppTest: TestBase() {
     @Test
     fun testQueryAllWorkbooks() {
         declareMock<WorkbookStore> {

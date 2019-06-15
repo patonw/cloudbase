@@ -8,11 +8,11 @@ import net.varionic.cloudbase.routing.wiring
 import java.lang.RuntimeException
 
 interface WorkbookStore {
+    val idGen: IDGenerator
+
     val allWorkbooks: MutableList<Workbook>
-    val allProcesses: MutableList<SheetContext>
     val allWorksheets: MutableList<Worksheet>
-    val sheets: WorksheetRegistry
-    val cells: CellRegistry
+    val allProcesses: MutableList<SheetContext>
 
     fun <T> transaction(block: WorkbookStore.() -> T): T
 
@@ -21,6 +21,11 @@ interface WorkbookStore {
 
     fun Worksheet.edit(block: WorksheetEditor.() -> Unit) = sheets.edit(this, block)
 }
+
+fun WorkbookStore.nextUUID() = idGen.next()
+
+val WorkbookStore.sheets get() = WorksheetRegistry(this)
+val WorkbookStore.cells get() = CellRegistry(this)
 
 class InvalidUUID(val msg: String) : RuntimeException(msg)
 class DetachedEntity(val msg: String): RuntimeException(msg)
@@ -175,8 +180,8 @@ internal fun WorkbookStore.insertCell(sheetId: String, cellType: String?): Inser
         val sheet = sheets.fetch(sheetId) ?: throw InvalidUUID("Worksheet $sheetId dose not exists")
 
         val cell = when (cellType) {
-            "GRAPH" -> GraphCell(nextUUID(), "", "")
-            else -> CodeCell(nextUUID(), "")
+            "GRAPH" -> cells.graphCell("", "")
+            else -> cells.codeCell("")
         }
 
         sheet.cells.add(cell)
@@ -238,7 +243,7 @@ internal fun WorkbookStore.createProcess(sheetId: String?): SheetContext {
                 .find { it.uuid == sheetId }
                 ?: throw InvalidUUID("Worksheet $sheetId does not exist")
 
-        val proc = SheetContext(nextUUID(), sheet)
+        val proc = SheetContext(nextUUID(), sheet, idGen)
         allProcesses.add(proc)
         proc
     }
@@ -255,7 +260,7 @@ internal fun WorkbookStore.createWorksheet(bookId: String, name: String): Worksh
         val prefix = uuid.take(5)
 
         val autoName = if (nameExists) "$name ($prefix)" else name
-        val sheet = Worksheet(uuid, bookId, autoName, mutableListOf(CodeCell(nextUUID(), "")))
+        val sheet = Worksheet(uuid, bookId, autoName, mutableListOf(cells.codeCell("")))
         allWorksheets.add(sheet)
 
         sheet

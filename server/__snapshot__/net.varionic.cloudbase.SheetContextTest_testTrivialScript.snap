@@ -1,0 +1,11 @@
+{
+  "uuid": "mockUUID",
+  "cell": {
+    "nucleus": {
+      "uuid": "theCellId",
+      "revision": 0
+    },
+    "script": ""
+  },
+  "data": {}
+}

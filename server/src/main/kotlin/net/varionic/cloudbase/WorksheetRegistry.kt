@@ -1,5 +1,7 @@
 package net.varionic.cloudbase
 
+data class Worksheet(var uuid: String, var bookId: String?, var name: String, var cells: MutableList<Cell>)
+
 class WorksheetRegistry(val store: WorkbookStore) {
     fun fetch(uuid: String) = with(store) {
         allWorkbooks
@@ -19,6 +21,8 @@ class WorksheetRegistry(val store: WorkbookStore) {
         block()
         eject()
     }
+
+    fun createProcess(sheet: Worksheet) = SheetContext(store.nextUUID(), sheet, store.idGen)
 }
 
 class WorksheetEditor(val original: Worksheet) {

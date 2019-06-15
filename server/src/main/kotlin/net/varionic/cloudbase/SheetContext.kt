@@ -2,7 +2,7 @@ package net.varionic.cloudbase
 
 import javax.script.ScriptEngineManager
 
-data class SheetContext(val uuid: String, val sheet: Worksheet) {
+data class SheetContext(val uuid: String, val sheet: Worksheet, val idGen: IDGenerator) {
     val engine = ScriptEngineManager().getEngineByName("kotlin")
     val resultMap = mutableMapOf<String,CellResult>()
 
@@ -11,7 +11,7 @@ data class SheetContext(val uuid: String, val sheet: Worksheet) {
 
     fun executeCell(cell: ExecutableCell): CellResult? {
         val result = cell.execute(this)?: Unit
-        val cr = CellResult(nextUUID(), cell, result)
+        val cr = CellResult(idGen.next(), cell, result)
         resultMap[cell.uuid] = cr
 
         return cr
