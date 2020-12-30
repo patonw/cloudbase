@@ -30,7 +30,7 @@
     "redux-observable": "^1.1.0",
     "rxjs": "^6.5.2",
     "typescript": "^3.4.5",
-    "vega": "^5.4.0",
+    "vega": "^5.17.3",
     "vega-lite": "^3.3.0"
   },
   "scripts": {
